@@ -1,6 +1,4 @@
 %% Determine custom parameters
-clear; clc; close all;
-
 id_fer = '4362152';
 id_emiel = '4446100';
 
@@ -24,6 +22,5 @@ c = -2*phi'*y;
 qpoptions = optimoptions('quadprog', 'Display', 'none', 'Algorithm', 'interior-point-convex');
 
 A = [1 0 0; -1 0 0]; b = [0.99 0.99]';
-[x, error, flag, ~] = quadprog(H, c, A, b, [], [], [], [], [], qpoptions);
+[x, error, flag = quadprog(H, c, A, b);
 
-error = error + y'*y;
