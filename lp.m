@@ -8,6 +8,7 @@ id_emiel = '4446100';
 E3 = str2double(id_emiel(end)) + str2double(id_fer(end));
 E2 = str2double(id_emiel(end-1)) + str2double(id_fer(end-1));
 E1 = str2double(id_emiel(end-2)) + str2double(id_fer(end-2));
+
 total_budget = 24000 + 300*E1;
 
 %% First problem
@@ -28,10 +29,13 @@ end
 
 % Plot optimization domain
 figure; hold on; grid; grid minor;
-contour(X1, X2, Y)
+contourf(X1, X2, Y, 30, 'LineWidth', 0.5)
 xrange = 0:10;
-plot(xrange, 12-xrange, 'k', 'Linewidth', 1.3)
-plot(xrange, total_budget/1500-2*xrange, 'k', 'Linewidth', 1.3)
+plot(xrange, 12-xrange, 'k', 'Linewidth', 1.8)
+plot(xrange, total_budget/1500-2*xrange, 'k', 'Linewidth', 1.8)
+[Xdots, Ydots] = meshgrid(1:10, 1:10);
+scatter(Xdots(:), Ydots(:), 'k', 'filled')
+xlabel('X'); ylabel('Y'); title('Analysis of integer solutions')
 colorbar;
 
 %% Second question
@@ -50,15 +54,20 @@ maintenance_budget = 4000 + 100*E1;
 remaining = total_budget - [3000 1500]*xint;
 
 xopt_arr = nan(10, 2);
+A0 = A; b0 = b;
 
 for yrs = 1:10
     A = [A; sum(Xcost(1:yrs)) sum(Ycost(1:yrs))];
     b = [b; remaining + yrs*maintenance_budget];
+%     A = [A0; [Xcost(yrs) Ycost(yrs)]];
+%     b = [b0; maintenance_budget];
     
     [xopt_arr(yrs,:) , fval, flag, ~] = linprog(f, A, b, [], [], [0 0], [], lpoptions);
     if flag ~= 1
         error('Infeasible problem')
     end
 end
+
+xopt_arr
 
     
