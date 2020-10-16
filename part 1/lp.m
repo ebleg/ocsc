@@ -1,13 +1,3 @@
-%% LP 
-clear; clc; close all;
-
-%% Determine custom parameters
-id_fer = '4362152';
-id_emiel = '4446100';
-
-E3 = str2double(id_emiel(end)) + str2double(id_fer(end));
-E2 = str2double(id_emiel(end-1)) + str2double(id_fer(end-1));
-E1 = str2double(id_emiel(end-2)) + str2double(id_fer(end-2));
 
 total_budget = 24000 + 300*E1;
 

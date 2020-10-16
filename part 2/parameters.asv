@@ -1,0 +1,13 @@
+%% Parameter file
+
+par_ud = struct();
+par_ud.c = 60;
+par_ud.N_lane = 3;
+par_ud.v_free = 50;
+par_ud.l_veh = 7;
+par_ud.l = 1000;
+par_ud.beta
+
+
+
+par_o1d = struct();

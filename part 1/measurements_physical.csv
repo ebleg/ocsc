@@ -1,4 +1,4 @@
-q_dot_occ,q_dot_ac,q_dot_vent,q_dot_solar,T_amb,T_b,Phi
+q_dot_occ (kW),q_dot_ac (kW),q_dot_vent (kW),q_dot_solar (kW),T_amb (°C),T_b (°C),Phi (Eur/KWh)
 0,40,0,0,5.1,24.87327506,0.18
 0,40,0,0,4.6,24.45308053,0.18
 0,40,0,0,4.3,23.91327361,0.18
