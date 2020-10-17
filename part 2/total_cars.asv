@@ -1,8 +1,0 @@
-function [q] = total_cars(x, par)
-    % Determine the total number of cars in a link
-    
-    N = numel(x);
-    coeff = 
-    q = sum(x((end-2):end)) 
-end
-
