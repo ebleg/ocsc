@@ -1,6 +1,13 @@
 %% Parameter file
+% Group-specific parameters
+id_fer = '4362152';
+id_emiel = '4446100';
+
+par.E3 = str2double(id_emiel(end)) + str2double(id_fer(end));
+par.E2 = str2double(id_emiel(end-1)) + str2double(id_fer(end-1));
+par.E1 = str2double(id_emiel(end-2)) + str2double(id_fer(end-2));
+
 % Parameters for the first link
-% sadfasfd
 par.ud = struct();
 par.ud.c = 60;
 par.ud.N_lane = 3;
