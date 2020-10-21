@@ -23,5 +23,6 @@ function [x_new] = state_transition(x, k, u, alpha_enter_fcn, Co_fcn, par)
                      *min([1/par.c*diag(par.mu)*[u u par.c]' ...
                            1/par.c*[eye(3) zeros(3,1)]*x + alpha_arrive, ...
                            Co_fcn(k)], [], 2);
+
 end
 
