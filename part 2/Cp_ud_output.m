@@ -1,4 +1,4 @@
-function [out] = C_ud_output(k, par)
+function [out] = Cp_ud_output(k, par)
 % Capacity of output links for link ud
 % CL = lane turning left , CS = straight, CR = turning right
     if k <= 20

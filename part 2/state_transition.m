@@ -1,4 +1,4 @@
-function [x_new] = state_transition3(x, k, u, alpha_enter_fcn, Co_fcn, par)
+function [x_new] = state_transition(x, k, u, alpha_enter_fcn, Co_fcn, par)
 % alpha_enter_fcn = function for the entering cars
 % C_fcn = function for the link capacity for a given
 % Co_fcn = function (returning a vector) for the output link capacities

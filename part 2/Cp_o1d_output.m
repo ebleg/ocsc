@@ -1,9 +1,9 @@
-function [out] = C_o1d_output(k, par)
+function [out] = Cp_o1d_output(k, par)
 % Capacity of the output links for link o1, d
     
     % Two capacities are identical to the ones computed 
     % for link ud
-    tmp = C_ud_output(k, par);
+    tmp = Cp_ud_output(k, par);
     
     % Capacity for right link (ud)
     if k <= 30
