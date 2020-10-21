@@ -4,6 +4,8 @@ function [x_new] = state_transition(x, k, u, alpha_enter_fcn, Co_fcn, par)
 % Co_fcn = function (returning a vector) for the output link capacities
 % x = [queue_left, queue_straight, queue_right, total # cars]
 
+    % the parameter struct is link specific!
+
     % Compute tau and gamma
     tau = floor((par.Cp - [1 1 1 0]*x)*par.l_veh...
                  /par.N_lane/par.v_free/par.c);

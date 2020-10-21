@@ -30,4 +30,3 @@ par.o1d.l = 1000;
 par.o1d.beta = [0.33 0.34 0.33]';
 par.o1d.mu = [1600 1800 1500]'/3600;
 par.o1d.Cp = par.o1d.N_lane*par.o1d.l/par.o1d.l_veh;
-
