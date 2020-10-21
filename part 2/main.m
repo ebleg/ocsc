@@ -18,9 +18,9 @@ t2 = toc;
 fprintf('Average cost function evaluation time: %fs\n', (t2-t1)/1000);
 
 %% Default fmincon solution
-% tic
-% [u_opt, fval, exitflag, output] = fmincon(@(u) J(u, x0, par), u0, [], [], [], [], lb, ub);
-% toc
+tic
+[u_opt, fval, exitflag, output] = fmincon(@(u) J(u, x0, par), u0, [], [], [], [], lb, ub);
+toc
 
 %% Custom bfgs / line search solution
 % u_opt = bfgs(@(u) J(u, x0, par), u0);
