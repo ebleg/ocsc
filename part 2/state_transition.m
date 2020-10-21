@@ -4,12 +4,12 @@ function [x_new] = state_transition(x, u, par)
     
     N = numel(x);
     m = N - 3;
-    x_new = nan(size(x));
+    x_new = zeros(size(x));
     
     % Compute required parameters
     q = total_cars(x, par);
-    tau = floor((u(2) - q*par.l_veh)/par.N_lane/par.v_free/par.c);
-    gamma = mod(u(2) - q*par.l_veh, par.N_lane*par.v_free*par.c);
+    tau = floor(((u(2) - q)*par.l_veh)/par.N_lane/par.v_free/par.c);
+    gamma = rem((u(2) - q)*par.l_veh/par.N_lane/par.v_free, par.c);
     
     % Shift all the arrival alpha's to the next time step
     for i = 2:m
@@ -17,20 +17,33 @@ function [x_new] = state_transition(x, u, par)
     end
     
     % Add newly arrived cars at the appropriate time delay
-    x_new(m-tau+1) = x_new(m-tau+1) + (1 + (par.c - gamma)/par.c)*u(1);
-    x_new(m-tau) = x_new(m-tau) + gamma/par.c*u(1);
+    if tau ~= 0 % Cars are delayed
+        x_new(m-tau+1) = x_new(m-tau+1) + (par.c - gamma)/par.c*u(1);
+    else % Cars are not delayed, put them in the queues directly
+        x_new(end-2) = x(end-2) + (par.c - gamma)/par.c*u(1)*par.beta(1)*par.c;
+        x_new(end-1) = x(end-1) + (par.c - gamma)/par.c*u(1)*par.beta(2)*par.c;
+        x_new(end) = x(end) + (par.c - gamma)/par.c*u(1)*par.beta(3)*par.c;
+    end
     
+    x_new(m-tau) = x_new(m-tau) + gamma/par.c*u(1);
+        
     % Add cars that arrive to the queues
     x_new(end-2) = x(end-2) + x(end-3)*par.beta(1)*par.c;
     x_new(end-1) = x(end-1) + x(end-3)*par.beta(2)*par.c;
     x_new(end) = x(end) + x(end-3)*par.beta(3)*par.c;
     
-    % Remove cars from the queues
+    % Remove cars from the queues that leave the crossing
     for i = 1:3
-       leaving = min(par.mu(i)*u(3)/par.c, ...
-                     x_new(end-3+i)/par.c, ...
-                     u(end-3+i)/par.c);
-       x_new(end-3+i) = x_new(end-3+i) - leaving;
+       if i ~= 3
+           leaving = min([par.mu(i)*u(3)/par.c, ...
+                         x_new(end-3+i)/par.c, ...
+                         u(end-3+i)/par.c]);
+       else % Right-turn has no red light
+           leaving = min([par.mu(i), ...
+               x_new(end-3+i)/par.c, ...
+               u(end-3+i)/par.c]);
+       end
+       x_new(end-3+i) = x_new(end-3+i) - leaving*par.c; % Remove the cars
     end
 end
 
