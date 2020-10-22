@@ -89,7 +89,7 @@ else
    fprintf('Optimization routine failed (flag %d)\n%s\n', flag, output.message)
 end
 
-clearvars -except A b f E1 E2 E3 lpoptions qpoptions
+%clearvars -except A b f E1 E2 E3 lpoptions qpoptions
 
 %% Question 1c - Find the number of durable years
 total_inst_budget = 24000 + 300*E1;
