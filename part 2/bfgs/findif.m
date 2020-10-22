@@ -8,7 +8,7 @@ function [grad] = findif(fcn, x0, feval, u, D)
     % D the derivative. It is assumed that feval will also be present in 
     % that case. 
     
-    h = 1e-8;
+    h = 1e-5;
     
     % Check number of input arguments
     switch nargin

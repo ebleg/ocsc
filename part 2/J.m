@@ -13,7 +13,7 @@ function [cost, x_rec] = J(u, x0, par)
         cost = cost + g(x, u(k), par);
         
         if nargout > 1 % Don't do this if it's unnecessary to avoid overhead
-            x_rec(k) = x;
+            x_rec(:, k) = x;
         end
     end
 end

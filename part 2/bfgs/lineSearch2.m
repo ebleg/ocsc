@@ -18,7 +18,7 @@ function [astar, phi_astar, dphi_astar] = lineSearch2(fnc, amax, phi_at0, dphi_a
     phi0 = meta.phi_at0;
     dphi0 = meta.dphi_at0;      
     
-    a1 = 1;
+    a1 = amax/2;
     
     if (a1 < 0)
         error('negative value')
@@ -58,7 +58,7 @@ function [astar, phi_astar, dphi_astar] = lineSearch2(fnc, amax, phi_at0, dphi_a
         phi0 = phi1;
         dphi0 = dphi1;
         
-        a2 = min(a1*2, amax); % From Python implementation
+        a2 = min(a1*1.5, amax); % From Python implementation
         phi2 = meta.phi(a2);
         while phi2 == inf
             a2 = a1 + (a2 - a1)*0.5;
@@ -70,6 +70,7 @@ function [astar, phi_astar, dphi_astar] = lineSearch2(fnc, amax, phi_at0, dphi_a
     end
     
     if i == max_iter
+%        warning('Line search did not converge');
        astar = a1;
        phi_astar = phi1;
        dphi_astar = dphi1;
@@ -118,4 +119,8 @@ function a = cubicintp(a0, phi0, dphi0, a1, phi1, dphi1)
     d1 = dphi0 + dphi1 - 3*(phi0 - phi1)/(a0 - a1);
     d2 = sign(a1 - a0)*sqrt(d1^2 - dphi0*dphi1);
     a = a1 - (a1 - a0)*((dphi1 + d2 - d1)/(dphi1 - dphi0 + 2*d2));
+    
+    if a < 0 || ~isreal(a) || isnan(a)
+        a = 0.5*(a1+a0); % Use bisection if cubic fails
+    end
 end
