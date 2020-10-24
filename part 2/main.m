@@ -19,7 +19,7 @@ ub = repmat(45, 60, 1);
 % fprintf('Average cost function evaluation time: %fs\n', (t2-t1)/1000); 
     
 %% Default fmincon solution
-settings = optimoptions('fmincon', 'Algorithm', 'sqp');
+settings = optimoptions('fmincon', 'Algorithm', 'interior-point');
 [u1, fval, exitflag, output] = fmincon(@(u) J(u, x0, par), ...
                                            u0_1, [], [], [], [], lb, ub, [], settings);
 
