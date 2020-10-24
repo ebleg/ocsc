@@ -3,9 +3,9 @@ addpath('bfgs');
 close all; clear; clc;
 
 run parameters
+run defaultPlotSettings
 
-u0_1 = repmat(15, 60, 1);
-u0_2 = repmat(45, 60, 1);
+u0 = repmat(15, 60, 1);
 x0 = zeros(8, 1);
 lb = repmat(15, 60, 1);
 ub = repmat(45, 60, 1);
@@ -16,10 +16,42 @@ ub = repmat(45, 60, 1);
 %     x = J(u0, x0, par);
 % end
 % t2 = toc;
-% fprintf('Average cost function evaluation time: %fs\n', (t2-t1)/1000); 
+% fprintf('Average cost function evaluation time: %fs\n', (t2-t1)/1000);
     
-%% Default fmincon solution
-settings = optimoptions('fmincon', 'Algorithm', 'interior-point');
-[u1, fval, exitflag, output] = fmincon(@(u) J(u, x0, par), ...
-                                           u0_1, [], [], [], [], lb, ub, [], settings);
+%% Default SQP solution
+sqp_sol = struct();
+sqp_sol.settings = optimoptions(@fmincon, 'Algorithm', 'sqp', ...
+                    'MaxFunctionEvaluations', 10000, 'Display', 'off');
+                
+[sqp_sol.u, sqp_sol.fval, sqp_sol.exitflag] = ...
+    fmincon(@(u) J(u, x0, par), u0, [], [], [], [], lb, ub, [], sqp_sol.settings);
+                                       
+fprintf('SQP solution --> total cost %f\n', sqp_sol.fval);
+
+%% Interior-point solution
+ip_sol = struct();
+ip_sol.settings = optimoptions(@fmincon, 'Algorithm', 'interior-point', ...
+                         'MaxFunctionEvaluations', 10000, 'Display', 'off');
+                     
+[ip_sol.u, ip_sol.fval, ip_sol.exitflag] = ...
+    fmincon(@(u) J(u, x0, par), u0, [], [], [], [], lb, ub, [], ip_sol.settings);
+                                       
+fprintf('Interior-point solution --> total cost %f\n', ip_sol.fval);
+
+%% Simulated annealing
+sa_sol = struct();
+sa_sol.settings = optimoptions(@simulannealbnd, ...
+          'MaxFunctionEvaluations', 30000, 'Display', 'off');
+
+[sa_sol.u, sa_sol.fval, sa_sol.exitflag] = ...
+    simulannealbnd(@(u) J(u, x0, par), u0, lb, ub);
+
+fprintf('Simulated annealing solution --> total cost %f\n', sa_sol.fval);
+
+%% Plot results
+close all; figure;
+plot_traffic_simulation(gcf, sa_sol.u, x0, 'Simulated annealing', par);
+plot_traffic_simulation(gcf, sqp_sol.u, x0, 'SQP', par);
+plot_traffic_simulation(gcf, ip_sol.u, x0, 'Interior-point', par);
+
 
