@@ -55,3 +55,20 @@ plot_traffic_simulation(gcf, sqp_sol.u, x0, 'SQP', par);
 plot_traffic_simulation(gcf, ip_sol.u, x0, 'Interior-point', par);
 
 
+
+%% Integer Genetic Algorithm 
+ga_sol = struct();
+ga_sol.settings = optimoptions(@ga, ...
+                    'PopulationSize', 150, ...
+                    'MaxGenerations', 200, ...
+                    'EliteCount', 10, ...
+                    'FunctionTolerance', 1e-8, ...
+                    'PlotFcn', @gaplotbestf);
+                                
+lb = ones(1, 60); % Lower bound representing the first discrete values in the set
+ub = repmat(7, 60, 1); % Number of discrete values in set
+
+rng(0, 'twister');
+[ga_sol.u, ga_sol.fval, ga_sol.exitflag] = ga(@(u)J_discrete(u), ...         % nog niet werkend.
+    60, [], [], [], [], lb, ub, @cantileverConstraintsWithDisc, 1:60, opts);
+
