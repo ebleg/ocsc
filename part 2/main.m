@@ -10,13 +10,13 @@ x0 = zeros(8, 1);
 lb = repmat(15, 60, 1);
 ub = repmat(45, 60, 1);
 
-%% Time the cost function for reference
-% t1 = toc;
-% for i = 1:50
-%     x = J(u0, x0, par);
-% end
-% t2 = toc;
-% fprintf('Average cost function evaluation time: %fs\n', (t2-t1)/1000);
+% Time the cost function for reference
+t1 = toc;
+for i = 1:50
+    x = J(u0, x0, par);
+end
+t2 = toc;
+fprintf('Average cost function evaluation time: %fs\n', (t2-t1)/1000);
     
 %% Default SQP solution
 sqp_sol = struct();
@@ -54,21 +54,4 @@ plot_traffic_simulation(gcf, sa_sol.u, x0, 'Simulated annealing', par);
 plot_traffic_simulation(gcf, sqp_sol.u, x0, 'SQP', par);
 plot_traffic_simulation(gcf, ip_sol.u, x0, 'Interior-point', par);
 
-
-
-%% Integer Genetic Algorithm 
-ga_sol = struct();
-ga_sol.settings = optimoptions(@ga, ...
-                    'PopulationSize', 150, ...
-                    'MaxGenerations', 200, ...
-                    'EliteCount', 10, ...
-                    'FunctionTolerance', 1e-8, ...
-                    'PlotFcn', @gaplotbestf);
-                                
-lb = ones(1, 60); % Lower bound representing the first discrete values in the set
-ub = repmat(7, 60, 1); % Number of discrete values in set
-
-rng(0, 'twister');
-[ga_sol.u, ga_sol.fval, ga_sol.exitflag] = ga(@(u)J_discrete(u), ...         % nog niet werkend.
-    60, [], [], [], [], lb, ub, @cantileverConstraintsWithDisc, 1:60, opts);
 

@@ -1,9 +1,10 @@
-function x = mapvariables (x);
+function u = mapvariables (u_disc)
 
 % Discrete time set for green light time
-Discrete_set= (15:5:45);
+discrete_set= (15:5:45);
+u = zeros(60,1);
+% Map u from integer values used by GA to the discrete values required
 
-% Map ... from integer values used by GA to the discrete values required
-
-x = Discrete_set(x);
+u = discrete_set(u_disc);
 end
+
