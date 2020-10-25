@@ -60,10 +60,10 @@
 %                     'FunctionTolerance', 1e-8, ...
 %                     'PlotFcn', @gaplotbestf);
 %                                 
-% %rng(0, 'twister');
-% %[ga_sol.u, ga_sol.fval, ga_sol.exitflag] = ga(@(u)J(u, x0, par), ...  
-% %    60, [], [], [], [], lb, ub,[],[], ga_sol.settings);
-% 
+% rng(0, 'twister');
+% [ga_sol.u, ga_sol.fval, ga_sol.exitflag] = ga(@(u)J(u, x0, par), ...  
+%    60, [], [], [], [], lb, ub,[],[], ga_sol.settings);
+
 % rng(0, 'twister');
 % [ga_sol.u, ga_sol.fval, ga_sol.exitflag] = ga(@(u)J_disc(u, x0, par), ...    
 %     60, [], [], [], [], lb, ub, [],1:60 , ga_sol.settings);
@@ -71,10 +71,11 @@
 % ga_sol.u_map = mapvariables(ga_sol.u);
 % 
 % fprintf('Integer Genetic Algorithm solution --> total cost %f\n', ga_sol.fval):
-
+% 
 %% Plot results
 close all; figure;
 plot_traffic_simulation(gcf, sa_sol.u, x0, 'Simulated annealing', par);
 plot_traffic_simulation(gcf, sqp_sol.u, x0, 'SQP', par);
 plot_traffic_simulation(gcf, ip_sol.u, x0, 'Interior-point', par);
-plot_traffic_simulation(gcf, ga_sol.u, x0, 'Genetic Algorithm', par);
+plot_traffic_simulation(gcf, ga_sol.u_map, x0, 'Genetic Algorithm', par);
+plot_traffic_simulation(gcf, repmat(30,60,1), x0, 'No-control Case', par);
