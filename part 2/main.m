@@ -72,6 +72,10 @@
 % 
 % fprintf('Integer Genetic Algorithm solution --> total cost %f\n', ga_sol.fval):
 % 
+
+%% No-control case
+u_30 = repmat(30,60,1);
+cost_30 = J(u_30, x0, par); 
 %% Plot results
 close all; figure;
 plot_traffic_simulation(gcf, sa_sol.u, x0, 'Simulated annealing', par);
