@@ -64,7 +64,6 @@
 % [ga_sol.u, ga_sol.fval, ga_sol.exitflag] = ga(@(u)J(u, x0, par), ...  
 %    60, [], [], [], [], lb, ub,[],[], ga_sol.settings);
 
-<<<<<<< HEAD
 close all; clear; clc;
 
 run parameters
@@ -119,6 +118,8 @@ toc
 
 %% Plot input
 clear; clc; close all;
+load('ga_sol.mat');
+
 t = 1:60;
 sqp_sol_45 = load('nlp_results\sqp_sol_45.mat');
 sqp_sol_15 = load('nlp_results\sqp_sol_15.mat');
@@ -149,6 +150,7 @@ title('Initialized at 45s')
 plot(t, sa_sol_45.u, 'DisplayName', 'Simulated annealing');
 plot(t, sqp_sol_45.u, 'DisplayName', 'Sequential Quadratic Programming');
 plot(t, ip_sol_45.u, 'DisplayName', 'Interior-point');
+plot(t, ga_sol.u_map, 'DisplayName', 'Genetic algorithm');
 lgd = legend(gca);
 
 lgd.Orientation = 'horizontal';
@@ -164,9 +166,9 @@ close all; figure;
 % plot_traffic_simulation(gcf, sa_sol_15.u, x0, 'Simulated annealing (15s)', par);
 % plot_traffic_simulation(gcf, sqp_sol_15.u, x0, 'SQP (15s)', par);
 % plot_traffic_simulation(gcf, ip_sol_15.u, x0, 'Interior-point (15s)', par);
-plot_traffic_simulation(gcf, sa_sol_45.u, x0, 'Simulated annealing (45s)', par);
-plot_traffic_simulation(gcf, sqp_sol_45.u, x0, 'SQP (45s)', par);
-plot_traffic_simulation(gcf, ip_sol_45.u, x0, 'Interior-point (45s)', par);
+plot_traffic_simulation(gcf, sa_sol_15.u, x0, 'Simulated annealing (15s)', par);
+plot_traffic_simulation(gcf, sqp_sol_15.u, x0, 'SQP (15s)', par);
+plot_traffic_simulation(gcf, ip_sol_15.u, x0, 'Interior-point (15s)', par);
 plot_traffic_simulation(gcf, repmat(30, 60, 1), x0, 'No control', par);
 plot_traffic_simulation(gcf, ga_sol.u_map, x0, 'Genetic Algorithm', par);
 

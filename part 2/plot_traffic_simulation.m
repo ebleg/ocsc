@@ -2,17 +2,11 @@ function [ax] = plot_traffic_simulation(fig, u, x0, label, par)
     [~, x] = J(u, x0, par);
     
     t = 1:60;
-    
-    persistent linewidth;
-    if isempty(linewidth)
-        linewidth = 2;
-    end
 
     axes = flip(findall(fig,'type','axes'));
     
     titles = {'Link $ud$ - Queue for $o_1$', 'Link $o_1d$ - Queue for $o_2$', ...
               'Link $ud$ - Queue for $o_2$' 'Link $o_1d$ - Queue for $o_3$', ...
-              'Link $ud$ - Queue for $o_3$' 'Link $o_1d$ - Queue for $ud$', ...
               '$n_{ud}$' '$n_{o_1d}$'};
 
     if isempty(axes) % No plots yet
@@ -32,7 +26,7 @@ function [ax] = plot_traffic_simulation(fig, u, x0, label, par)
             if state ~= 3
                 lin_idx = min([(state-1), 2])*2 + link;
                 plot(axes(lin_idx), t, x(state + 4*(link-1), :), ...
-                    'DisplayName', label, 'LineWidth', linewidth)
+                    'DisplayName', label, 'LineWidth', 1)
                 title(axes(lin_idx), titles{lin_idx});
             end
         end
@@ -43,6 +37,5 @@ function [ax] = plot_traffic_simulation(fig, u, x0, label, par)
     lgd.Orientation = 'horizontal';
     lgd.Layout.Tile = 'north';
     
-    linewidth = linewidth -0.3;
 end
 
