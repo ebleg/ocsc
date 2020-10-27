@@ -74,17 +74,17 @@ x0 = zeros(8, 1);
 lb = repmat(15, 60, 1);
 ub = repmat(45, 60, 1);
 
-%% Time the cost function for reference
-t1 = toc;
-for i = 1:50
-    x = J(u0, x0, par);
-end
-t2 = toc;
-fprintf('Average cost function evaluation time: %fs\n', (t2-t1)/50);
-%%
-tic
+% %% Time the cost function for reference
+% t1 = toc;
+% for i = 1:50
+%     x = J(u0, x0, par);
+% end
+% t2 = toc;
+% fprintf('Average cost function evaluation time: %fs\n', (t2-t1)/50);
+% %%
 
 %% Default SQP solution
+tic
 sqp_sol = struct();
 sqp_sol.settings = optimoptions(@fmincon, 'Algorithm', 'sqp', ...
                     'MaxFunctionEvaluations', 10000, 'Display', 'off');
@@ -93,16 +93,17 @@ sqp_sol.settings = optimoptions(@fmincon, 'Algorithm', 'sqp', ...
     fmincon(@(u) J(u, x0, par), u0, [], [], [], [], lb, ub, [], sqp_sol.settings);
                                        
 fprintf('SQP solution --> total cost %f\n', sqp_sol.fval);
-
-%% Interior-point solution
-ip_sol = struct();
-ip_sol.settings = optimoptions(@fmincon, 'Algorithm', 'interior-point', ...
-                         'MaxFunctionEvaluations', 10000, 'Display', 'off');
-                     
-[ip_sol.u, ip_sol.fval, ip_sol.exitflag] = ...
-    fmincon(@(u) J(u, x0, par), u0, [], [], [], [], lb, ub, [], ip_sol.settings);
-                                       
-fprintf('Interior-point solution --> total cost %f\n', ip_sol.fval);
+toc
+% 
+% %% Interior-point solution
+% ip_sol = struct();
+% ip_sol.settings = optimoptions(@fmincon, 'Algorithm', 'interior-point', ...
+%                          'MaxFunctionEvaluations', 10000, 'Display', 'off');
+%                      
+% [ip_sol.u, ip_sol.fval, ip_sol.exitflag] = ...
+%     fmincon(@(u) J(u, x0, par), u0, [], [], [], [], lb, ub, [], ip_sol.settings);
+%                                        
+% fprintf('Interior-point solution --> total cost %f\n', ip_sol.fval);
 
 %% Simulated annealing
 sa_sol = struct();
@@ -114,7 +115,6 @@ sa_sol.settings = optimoptions(@simulannealbnd, ...
 
 fprintf('Simulated annealing solution --> total cost %f\n', sa_sol.fval);
 
-toc
 
 %% Plot input
 clear; clc; close all;
