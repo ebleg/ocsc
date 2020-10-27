@@ -25,16 +25,16 @@ set(groot, 'defaultAxesXMinorGridMode','manual');
 set(groot, 'defaultAxesYMinorGridMode','manual');
 set(groot, 'defaultAxesYMinorGridMode','manual');
 
-%% Group specific parameters
+%% Determine custom parameters
+
+% Group specific parameters
 id_fer = '4362152';
 id_emiel = '4446100';
 
-E3 = str2double(id_emiel(end)) + str2double(id_fer(end));
-E2 = str2double(id_emiel(end-1)) + str2double(id_fer(end-1));
-E1 = str2double(id_emiel(end-2)) + str2double(id_fer(end-2));
-
+par.E3 = str2double(id_emiel(end)) + str2double(id_fer(end));
+par.E2 = str2double(id_emiel(end-1)) + str2double(id_fer(end-1));
+par.E1 = str2double(id_emiel(end-2)) + str2double(id_fer(end-2));
 clear id_fer id_emiel;
-%% Determine custom parameters
 
 % Parameters for the first link
 par.ud = struct();
@@ -114,15 +114,13 @@ rng(0, 'twister');
 [ga_sol.u, ga_sol.fval, ga_sol.exitflag] = ga(@(u)J_disc(u, x0, par), ...    
      60, [], [], [], [], lb, ub, [],1:60 , ga_sol.settings);
  
-ga_sol.u_map = mapvariables(ga_sol.u);
+ga_sol.u_map = mapvariables(ga_sol.u);  % Map algorithm outcome back to discrete time set
  
- fprintf('Integer genetic algorithm solution --> total cost %f\n', sa_sol.fval);
+fprintf('Integer genetic algorithm solution --> total cost %f\n', sa_sol.fval);
  
 %% Plot green light time
-clear; clc; close all;
-load('ga_sol.mat');
 
-t = 1:60;
+t = 1:60; %simulation time
 sqp_sol_45 = load('nlp_results\sqp_sol_45.mat');
 sqp_sol_15 = load('nlp_results\sqp_sol_15.mat');
 sa_sol_45 = load('nlp_results\sa_sol_45.mat');
@@ -178,7 +176,11 @@ plot_traffic_simulation(gcf, ga_sol.u_map, x0, 'Genetic Algorithm', par);
 
 %% plot system inputs 
 t=1:60;
-cp_ud_plot=zeros(3,60); cp_o1d_plot=zeros(3,60); alpha_ud_plot=zeros(1,60); alpha_o1d_plot=zeros(1,60);
+cp_ud_plot=zeros(3,60); 
+cp_o1d_plot=zeros(3,60); 
+alpha_ud_plot=zeros(1,60); 
+alpha_o1d_plot=zeros(1,60);
+
 for k=1:60
     cp_ud_plot(:,k)=Cp_ud_output(k, par);
     cp_o1d_plot(:,k)=Cp_o1d_output(k, par);
@@ -215,7 +217,7 @@ xlabel(tile, 'Time [min]', 'interpreter', 'latex')
 
 %% System inputs
 function [out] = alpha_ud_enter(k, par)
-% Rate of cars entering link ud
+% Traffic flow upstream link ud
     if k <= 20
         out = (1800 + 10*par.E1)/3600;
     elseif k > 20 && k <= 40
@@ -226,12 +228,12 @@ function [out] = alpha_ud_enter(k, par)
 end
 
 function [out] = alpha_o1d_enter(k, par)
-% Cars entering link o1d (constant in time)
+% Traffic flow upstream link o1d (constant in time)
     out = (2000 + 10*par.E1)/3600;
 end
 
 function [out] = Cp_ud_output(k, par)
-% Capacity of output links for link ud
+% Capacity of downstream links for link ud
 % CL = lane turning left , CS = straight, CR = turning right
     if k <= 20
         CL = 40 + par.E1;
@@ -259,7 +261,7 @@ function [out] = Cp_o1d_output(k, par)
 % Capacity of the output links for link o1, d
     
     % Two capacities are identical to the ones computed 
-    % for link ud
+    % Capacity for link u,d
     tmp = Cp_ud_output(k, par);
     
     % Capacity for right link (ud)
@@ -280,7 +282,7 @@ function [x_new] = f(x, k, u, par)
 % Overall state transition function, including both links ud and o1d.
     N = numel(x)/2;
     x_ud = x(1:N); % States for link ud
-    x_o1d = x((N+1):end); % States for link 01d
+    x_o1d = x((N+1):end); % States for link o1d
     
     % Update states for link ud
     x_ud_new = state_transition(x_ud, k, u, ...
@@ -300,7 +302,7 @@ end
 
 function [x_new] = state_transition(x, k, u, alpha_enter_fcn, Co_fcn, par)
 % alpha_enter_fcn = function for the entering cars
-% C_fcn = function for the link capacity for a given
+% C_fcn = function for the link capacity 
 % Co_fcn = function (returning a vector) for the output link capacities
 % x = [queue_left, queue_straight, queue_right, total # cars]
 
@@ -327,7 +329,7 @@ function [x_new] = state_transition(x, k, u, alpha_enter_fcn, Co_fcn, par)
 end
 
 function [y] = g(x, u, par)
-% Output % number of vehicles on link (u,d) and link (o1,d)
+% Output number of vehicles on link (u,d) and link (o1,d)
     y = par.ud.c*[0 0 0 1 0 0 0 1]*x; % Both time steps are equal
 end
 
@@ -374,7 +376,7 @@ end
 
 
 
-%% Plot function
+%% Plot functions
 function [ax] = plot_traffic_simulation(fig, u, x0, label, par)
     [~, x] = J(u, x0, par);
     
@@ -409,10 +411,10 @@ function [ax] = plot_traffic_simulation(fig, u, x0, label, par)
         end
     end
     
-    % Need Matlab R2020b
-    lgd = legend(axes(1));
-    lgd.Orientation = 'horizontal';
-    lgd.Layout.Tile = 'north';
+%     % Need Matlab R2020b
+%     lgd = legend(axes(1));
+%     lgd.Orientation = 'horizontal';
+%     lgd.Layout.Tile = 'north';
     
 end
 

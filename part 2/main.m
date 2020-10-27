@@ -25,16 +25,16 @@ set(groot, 'defaultAxesXMinorGridMode','manual');
 set(groot, 'defaultAxesYMinorGridMode','manual');
 set(groot, 'defaultAxesYMinorGridMode','manual');
 
-%% Group specific parameters
+%% Determine custom parameters
+
+% Group specific parameters
 id_fer = '4362152';
 id_emiel = '4446100';
 
-E3 = str2double(id_emiel(end)) + str2double(id_fer(end));
-E2 = str2double(id_emiel(end-1)) + str2double(id_fer(end-1));
-E1 = str2double(id_emiel(end-2)) + str2double(id_fer(end-2));
-
+par.E3 = str2double(id_emiel(end)) + str2double(id_fer(end));
+par.E2 = str2double(id_emiel(end-1)) + str2double(id_fer(end-1));
+par.E1 = str2double(id_emiel(end-2)) + str2double(id_fer(end-2));
 clear id_fer id_emiel;
-%% Determine custom parameters
 
 % Parameters for the first link
 par.ud = struct();
@@ -119,24 +119,22 @@ ga_sol.u_map = mapvariables(ga_sol.u);
  fprintf('Integer genetic algorithm solution --> total cost %f\n', sa_sol.fval);
  
 %% Plot green light time
-clear; clc; close all;
-load('ga_sol.mat');
 
 t = 1:60;
-sqp_sol_45 = load('nlp_results\sqp_sol_45.mat');
-sqp_sol_15 = load('nlp_results\sqp_sol_15.mat');
-sa_sol_45 = load('nlp_results\sa_sol_45.mat');
-sa_sol_15 = load('nlp_results\sa_sol_15.mat');
-ip_sol_45 = load('nlp_results\ip_sol_45.mat');
-ip_sol_15 = load('nlp_results\ip_sol_15.mat');
-ga_sol = load('nlp_results\ga_sol.mat');
+%sqp_sol_45 = load('nlp_results\sqp_sol_45.mat');
+%sqp_sol_15 = load('nlp_results\sqp_sol_15.mat');
+%sa_sol_45 = load('nlp_results\sa_sol_45.mat');
+%sa_sol_15 = load('nlp_results\sa_sol_15.mat');
+%ip_sol_45 = load('nlp_results\ip_sol_45.mat');
+%ip_sol_15 = load('nlp_results\ip_sol_15.mat');
+%ga_sol = load('nlp_results\ga_sol.mat');
 
-sqp_sol_45 = sqp_sol_45.sqp_sol;
-sqp_sol_15 = sqp_sol_15.sqp_sol;
-sa_sol_45 = sa_sol_45.sa_sol;
-sa_sol_15 = sa_sol_15.sa_sol;
-ip_sol_45 = ip_sol_45.ip_sol;
-ip_sol_15 = ip_sol_15.ip_sol;
+% sqp_sol_45 = sqp_sol_45.sqp_sol;
+% sqp_sol_15 = sqp_sol_15.sqp_sol;
+% sa_sol_45 = sa_sol_45.sa_sol;
+% sa_sol_15 = sa_sol_15.sa_sol;
+% ip_sol_45 = ip_sol_45.ip_sol;
+% ip_sol_15 = ip_sol_15.ip_sol;
 
 figure;
 hold on;
@@ -374,7 +372,7 @@ end
 
 
 
-%% Plot function
+%% Plot functions
 function [ax] = plot_traffic_simulation(fig, u, x0, label, par)
     [~, x] = J(u, x0, par);
     
@@ -409,10 +407,10 @@ function [ax] = plot_traffic_simulation(fig, u, x0, label, par)
         end
     end
     
-    % Need Matlab R2020b
-    lgd = legend(axes(1));
-    lgd.Orientation = 'horizontal';
-    lgd.Layout.Tile = 'north';
+%     % Need Matlab R2020b
+%     lgd = legend(axes(1));
+%     lgd.Orientation = 'horizontal';
+%     lgd.Layout.Tile = 'north';
     
 end
 
