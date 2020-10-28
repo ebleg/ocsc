@@ -64,26 +64,15 @@ x0 = zeros(8, 1);
 lb = repmat(15, 60, 1);
 ub = repmat(45, 60, 1);
 
-<<<<<<< HEAD
-% %% Time the cost function for reference
-% t1 = toc;
-% for i = 1:50
-%     x = J(u0, x0, par);
-% end
-% t2 = toc;
-% fprintf('Average cost function evaluation time: %fs\n', (t2-t1)/50);
-% %%
-
 %% Time the cost function for reference
-t1 = toc;
+t1 = tic;
 for i = 1:50
     x = J(u0, x0, par);
 end
-t2 = toc;
-fprintf('Average cost function evaluation time: %fs\n', (t2-t1)/50);
+t2 = toc(t1);
+fprintf('Average cost function evaluation time: %fs\n', (t2)/50);
 
 %% Default SQP solution
-tic
 sqp_sol = struct();
 sqp_sol.settings = optimoptions(@fmincon, 'Algorithm', 'sqp', ...
                     'MaxFunctionEvaluations', 10000, 'Display', 'off');
@@ -92,17 +81,16 @@ sqp_sol.settings = optimoptions(@fmincon, 'Algorithm', 'sqp', ...
     fmincon(@(u) J(u, x0, par), u0, [], [], [], [], lb, ub, [], sqp_sol.settings);
                                        
 fprintf('SQP solution --> total cost %f\n', sqp_sol.fval);
-toc
-% 
-% %% Interior-point solution
-% ip_sol = struct();
-% ip_sol.settings = optimoptions(@fmincon, 'Algorithm', 'interior-point', ...
-%                          'MaxFunctionEvaluations', 10000, 'Display', 'off');
-%                      
-% [ip_sol.u, ip_sol.fval, ip_sol.exitflag] = ...
-%     fmincon(@(u) J(u, x0, par), u0, [], [], [], [], lb, ub, [], ip_sol.settings);
-%                                        
-% fprintf('Interior-point solution --> total cost %f\n', ip_sol.fval);
+
+%% Interior-point solution
+ip_sol = struct();
+ip_sol.settings = optimoptions(@fmincon, 'Algorithm', 'interior-point', ...
+                         'MaxFunctionEvaluations', 10000, 'Display', 'off');
+                     
+[ip_sol.u, ip_sol.fval, ip_sol.exitflag] = ...
+    fmincon(@(u) J(u, x0, par), u0, [], [], [], [], lb, ub, [], ip_sol.settings);
+                                       
+fprintf('Interior-point solution --> total cost %f\n', ip_sol.fval);
 
 %% Simulated annealing
 sa_sol = struct();
@@ -126,27 +114,13 @@ rng(0, 'twister');
 [ga_sol.u, ga_sol.fval, ga_sol.exitflag] = ga(@(u)J_disc(u, x0, par), ...    
      60, [], [], [], [], lb, ub, [],1:60 , ga_sol.settings);
  
-ga_sol.u_map = mapvariables(ga_sol.u);
+ga_sol.u_map = mapvariables(ga_sol.u);  % Map algorithm outcome back to discrete time set
  
- fprintf('Integer genetic algorithm solution --> total cost %f\n', sa_sol.fval);
+fprintf('Integer genetic algorithm solution --> total cost %f\n', sa_sol.fval);
  
 %% Plot green light time
 
-t = 1:60;
-%sqp_sol_45 = load('nlp_results\sqp_sol_45.mat');
-%sqp_sol_15 = load('nlp_results\sqp_sol_15.mat');
-%sa_sol_45 = load('nlp_results\sa_sol_45.mat');
-%sa_sol_15 = load('nlp_results\sa_sol_15.mat');
-%ip_sol_45 = load('nlp_results\ip_sol_45.mat');
-%ip_sol_15 = load('nlp_results\ip_sol_15.mat');
-%ga_sol = load('nlp_results\ga_sol.mat');
-
-% sqp_sol_45 = sqp_sol_45.sqp_sol;
-% sqp_sol_15 = sqp_sol_15.sqp_sol;
-% sa_sol_45 = sa_sol_45.sa_sol;
-% sa_sol_15 = sa_sol_15.sa_sol;
-% ip_sol_45 = ip_sol_45.ip_sol;
-% ip_sol_15 = ip_sol_15.ip_sol;
+t = 1:60; %simulation time
 
 figure;
 hold on;
@@ -154,15 +128,15 @@ hold on;
 tile = tiledlayout(2, 1, 'TileSpacing', 'compact', 'Padding', 'compact');
 nexttile; hold on;
 title('Initialized at 15s')
-plot(t, sa_sol_15.u, 'DisplayName', 'Simulated annealing');
-plot(t, sqp_sol_15.u, 'DisplayName', 'Sequential Quadratic Programming');
-plot(t, ip_sol_15.u, 'DisplayName', 'Interior-point');
+plot(t, sa_sol.u, 'DisplayName', 'Simulated annealing');
+plot(t, sqp_sol.u, 'DisplayName', 'Sequential Quadratic Programming');
+plot(t, ip_sol.u, 'DisplayName', 'Interior-point');
 
 nexttile; hold on;
 title('Initialized at 45s')
-plot(t, sa_sol_45.u, 'DisplayName', 'Simulated annealing');
-plot(t, sqp_sol_45.u, 'DisplayName', 'Sequential Quadratic Programming');
-plot(t, ip_sol_45.u, 'DisplayName', 'Interior-point');
+plot(t, sa_sol.u, 'DisplayName', 'Simulated annealing');
+plot(t, sqp_sol.u, 'DisplayName', 'Sequential Quadratic Programming');
+plot(t, ip_sol.u, 'DisplayName', 'Interior-point');
 plot(t, ga_sol.u_map, 'DisplayName', 'Genetic algorithm');
 lgd = legend(gca);
 
@@ -175,20 +149,24 @@ xlabel(tile, 'Time [min]', 'interpreter', 'latex');
 
 
 %% Plot results
-close all; figure;
+figure;
 % plot_traffic_simulation(gcf, sa_sol_15.u, x0, 'Simulated annealing (15s)', par);
 % plot_traffic_simulation(gcf, sqp_sol_15.u, x0, 'SQP (15s)', par);
 % plot_traffic_simulation(gcf, ip_sol_15.u, x0, 'Interior-point (15s)', par);
-plot_traffic_simulation(gcf, sa_sol_15.u, x0, 'Simulated annealing (15s)', par);
-plot_traffic_simulation(gcf, sqp_sol_15.u, x0, 'SQP (15s)', par);
-plot_traffic_simulation(gcf, ip_sol_15.u, x0, 'Interior-point (15s)', par);
+plot_traffic_simulation(gcf, sa_sol.u, x0, 'Simulated annealing (15s)', par);
+plot_traffic_simulation(gcf, sqp_sol.u, x0, 'SQP (15s)', par);
+plot_traffic_simulation(gcf, ip_sol.u, x0, 'Interior-point (15s)', par);
 plot_traffic_simulation(gcf, repmat(30, 60, 1), x0, 'No control', par);
 plot_traffic_simulation(gcf, ga_sol.u_map, x0, 'Genetic Algorithm', par);
 
 
 %% plot system inputs 
 t=1:60;
-cp_ud_plot=zeros(3,60); cp_o1d_plot=zeros(3,60); alpha_ud_plot=zeros(1,60); alpha_o1d_plot=zeros(1,60);
+cp_ud_plot=zeros(3,60); 
+cp_o1d_plot=zeros(3,60); 
+alpha_ud_plot=zeros(1,60); 
+alpha_o1d_plot=zeros(1,60);
+
 for k=1:60
     cp_ud_plot(:,k)=Cp_ud_output(k, par);
     cp_o1d_plot(:,k)=Cp_o1d_output(k, par);
@@ -196,7 +174,7 @@ for k=1:60
     alpha_o1d_plot(1,k)=3600*alpha_o1d_enter(k, par);
 end
 
-close all; figure;
+figure;
 tile = tiledlayout(1, 2, 'TileSpacing', 'compact', 'Padding', 'compact');
 nexttile; hold on;
 title('Capacity of downstream links','interpreter', 'latex')
@@ -225,7 +203,7 @@ xlabel(tile, 'Time [min]', 'interpreter', 'latex')
 
 %% System inputs
 function [out] = alpha_ud_enter(k, par)
-% Rate of cars entering link ud
+% Traffic flow upstream link ud
     if k <= 20
         out = (1800 + 10*par.E1)/3600;
     elseif k > 20 && k <= 40
@@ -236,12 +214,12 @@ function [out] = alpha_ud_enter(k, par)
 end
 
 function [out] = alpha_o1d_enter(k, par)
-% Cars entering link o1d (constant in time)
+% Traffic flow upstream link o1d (constant in time)
     out = (2000 + 10*par.E1)/3600;
 end
 
 function [out] = Cp_ud_output(k, par)
-% Capacity of output links for link ud
+% Capacity of downstream links for link ud
 % CL = lane turning left , CS = straight, CR = turning right
     if k <= 20
         CL = 40 + par.E1;
@@ -269,7 +247,7 @@ function [out] = Cp_o1d_output(k, par)
 % Capacity of the output links for link o1, d
     
     % Two capacities are identical to the ones computed 
-    % for link ud
+    % Capacity for link u,d
     tmp = Cp_ud_output(k, par);
     
     % Capacity for right link (ud)
@@ -290,7 +268,7 @@ function [x_new] = f(x, k, u, par)
 % Overall state transition function, including both links ud and o1d.
     N = numel(x)/2;
     x_ud = x(1:N); % States for link ud
-    x_o1d = x((N+1):end); % States for link 01d
+    x_o1d = x((N+1):end); % States for link o1d
     
     % Update states for link ud
     x_ud_new = state_transition(x_ud, k, u, ...
@@ -310,7 +288,7 @@ end
 
 function [x_new] = state_transition(x, k, u, alpha_enter_fcn, Co_fcn, par)
 % alpha_enter_fcn = function for the entering cars
-% C_fcn = function for the link capacity for a given
+% C_fcn = function for the link capacity 
 % Co_fcn = function (returning a vector) for the output link capacities
 % x = [queue_left, queue_straight, queue_right, total # cars]
 
@@ -337,7 +315,7 @@ function [x_new] = state_transition(x, k, u, alpha_enter_fcn, Co_fcn, par)
 end
 
 function [y] = g(x, u, par)
-% Output % number of vehicles on link (u,d) and link (o1,d)
+% Output number of vehicles on link (u,d) and link (o1,d)
     y = par.ud.c*[0 0 0 1 0 0 0 1]*x; % Both time steps are equal
 end
 
