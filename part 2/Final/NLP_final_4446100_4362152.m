@@ -31,9 +31,9 @@ set(groot, 'defaultAxesYMinorGridMode','manual');
 id_fer = '4362152';
 id_emiel = '4446100';
 
-par.E3 = str2double(id_emiel(end)) + str2double(id_fer(end));
-par.E2 = str2double(id_emiel(end-1)) + str2double(id_fer(end-1));
-par.E1 = str2double(id_emiel(end-2)) + str2double(id_fer(end-2));
+par.E3 = 
+par.E2 = 
+par.E1 = 
 clear id_fer id_emiel;
 
 % Parameters for the first link
@@ -105,15 +105,15 @@ fprintf('Simulated annealing solution --> total cost %f\n', sa_sol.fval);
 %% Integer Genetic Algorithm 
 lb = ones(1, 60);      % Lower bound representing the first discrete value in the set
 ub = repmat(7, 60, 1); % Number of discrete values in set
- 
-ga_sol = struct();
-ga_sol.settings = optimoptions(@ga, 'PopulationSize', 150, 'MaxGenerations', 600, ...
-         'EliteCount', 10, 'FunctionTolerance', 1e-8, 'PlotFcn', @gaplotbestf);                                 
 
+ga_sol = struct();
+ga_sol.settings = optimoptions(@ga, 'PopulationSize', 200, 'MaxGenerations', 600, ...
+         'EliteCount', 10, 'FunctionTolerance', 1e-8, 'PlotFcn', @gaplotbestf);                                 
+tic
 rng(0, 'twister');
 [ga_sol.u, ga_sol.fval, ga_sol.exitflag] = ga(@(u)J_disc(u, x0, par), ...    
      60, [], [], [], [], lb, ub, [],1:60 , ga_sol.settings);
- 
+toc 
 ga_sol.u_map = mapvariables(ga_sol.u);  % Map algorithm outcome back to discrete time set
  
 fprintf('Integer genetic algorithm solution --> total cost %f\n', sa_sol.fval);

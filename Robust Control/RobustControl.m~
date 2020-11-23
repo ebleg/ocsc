@@ -1,0 +1,3 @@
+load assignment_data_sc42145
+
+[b,a] = ss2tf(A,B,C,D)
