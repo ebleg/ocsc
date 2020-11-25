@@ -14,7 +14,7 @@ G = G_MIMO(1, 1);
 
 % pzmap(G)
 
-Kp = -0.7136;
+Kp = -5;
 Ti = 4;
 Td = -10;
 Tf = 50;
@@ -22,28 +22,21 @@ K = pid(Kp, Kp/Ti, Kp*Td, Tf);
 % figure('Name', 'Controller FRF')
 % bode(K)
 
-%% Notch filter idea
-% N = tf([1 0.01286 0.04], [1 0.03556 0.04]);
-% bode(N); hold on;
-% bode(G);
-% bode(N*G);
-% G_new = minreal(N*G);
 
 %% Low pass idea
-w_cut = 0.12;
+w_cut = 0.5;
 lowpass = tf([0 0 w_cut^2], [1 2*w_cut*0.7 w_cut^2]);
 bode(lowpass); hold on;
 bode(G); 
 bode(K);
 
-% K = K*N;
-L = lowpass*K*G;
+L = minreal(lowpass*K*G);
 % bode(L); hold on;
 % bode(G);
 % figure('Name', 'Loop gain FRF');
 % margin(L)
 
-G_new = L*G;
+G_new = lowpass*G;
 
 T = minreal(L/(1 + L), 1e-7);
 S = minreal(1/(1 + L), 1e-7);
