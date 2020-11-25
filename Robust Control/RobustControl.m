@@ -53,8 +53,8 @@ PM_target = rad2deg(atan(2*zeta_target/...
 BW_factor = 4/zeta_target*sqrt((1-2*zeta_target^2) ...
             + sqrt(4*zeta_target^4 - 4*zeta_target^2 + 2));
         
-load('C_best.mat');
-[num, den] = tfdata(C_best);
+load('C_best_2.mat');
+[num, den] = tfdata(C_best_2);
 num = num{1}; den = den{1};
 w_lp = sqrt(den(3));
 zeta_lp = den(2)/2/w_lp;
@@ -71,7 +71,7 @@ T = minreal(L/(1 + L), 1e-7);
 S = minreal(1/(1 + L), 1e-7);
 
 %% Simulation
-stepinfo(T)
+stepinfo(T, 'SettlingTimeThreshold', 0.01)
 
 figure
 step(T)
