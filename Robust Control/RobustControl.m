@@ -31,6 +31,7 @@ G = G_MIMO(1, 1);
 % bode(K);
 
 % L = minreal(lowpass*K*G);
+
 % bode(L); hold on;
 % bode(G);
 % figure('Name', 'Loop gain FRF');
@@ -74,3 +75,5 @@ stepinfo(T)
 
 figure
 step(T)
+
+margin(L)
