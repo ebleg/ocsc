@@ -14,9 +14,9 @@ G = G_MIMO(1, 1);
 
 % pzmap(G)
 
-Kp = -0.7136;
+Kp = -0.79;
 Ti = 4;
-Td = -10;
+Td = 0;
 Tf = 50;
 K = pid(Kp, Kp/Ti, Kp*Td, Tf);
 % figure('Name', 'Controller FRF')
@@ -31,13 +31,13 @@ K = pid(Kp, Kp/Ti, Kp*Td, Tf);
 
 %% Low pass idea
 w_cut = 0.12;
-lowpass = tf([0 0 w_cut^2], [1 2*w_cut*0.7 w_cut^2]);
+lowpass = tf([0 0 w_cut^2], [1 2*w_cut*0.67 w_cut^2]);
 bode(lowpass); hold on;
 bode(G); 
 bode(K);
 
 % K = K*N;
-L = lowpass*K*G;
+L = minreal(lowpass*K*G);
 % bode(L); hold on;
 % bode(G);
 % figure('Name', 'Loop gain FRF');
@@ -66,3 +66,5 @@ stepinfo(T)
 
 figure
 step(T)
+
+margin(L)
