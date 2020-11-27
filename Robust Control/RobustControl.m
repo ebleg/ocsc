@@ -8,41 +8,64 @@ s = tf('s');
 sys = ss(A,B,C,D);
 G_MIMO = tf(sys);
 G = G_MIMO(1, 1);
+margin(G);
+pzmap(G);
+close all
 
-% figure('Name', 'Plant frequency response')
-% margin(G)
+%% Root locus
+figure
+rlocus(-G)
 
-% pzmap(G)
+%% proportional gain action (first plot)
+G_margins = allmargin(-G); % Compute all the margins
+for K = linspace(0, G_margins.GainMargin, 5)
+    step(feedback(-K*G, 1), 0:0.2:100);
+    hold on; grid; grid minor;
+end
 
-% Kp = -5;
-% Ti = 4;
-% Td = -10;
+%% PI Implementation (second plot)
+Kp = -16.21/3.2; % Tuning parameters based on Ziegler and Nichols 
+Ti = 31/1.5;
+% Td = -10; % No derivative action is needed
 % Tf = 50;
-% K = pid(Kp, Kp/Ti, Kp*Td, Tf);
-% figure('Name', 'Controller FRF')
-% bode(K)
+K = pid(Kp, Kp/Ti) %, Kp*Td, Tf);
+figure('Name', 'Pi FRF') 
+L = minreal(K*G)
+T = minreal(L/(1 + L), 1e-7);
+step(feedback(L,1)) 
+stepinfo(T,'SettlingTimeThreshold', 0.01)
 
+[y_step, t_step] = step(T);
+plot_step = plot(t_step, y_step, 'Color', '#27ae60');
+set(plot_step, 'LineWidth', 1.7);
+ax = gca;
+xlim([0 max(t_step)])
+xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Amplitude', 'interpreter', 'latex', 'fontsize', 12);
+title('\textbf{Step response}', 'interpreter', 'latex', 'fontsize', 13);
+format_axes(ax);
 
 %% Low pass idea
-% w_cut = 0.5;
-% lowpass = tf([0 0 w_cut^2], [1 2*w_cut*0.7 w_cut^2]);
-% bode(lowpass); hold on;
-% bode(G); 
-% bode(K);
+close all
+w_cut = 0.1;
+lowpass = tf([0 0 w_cut^2], [1 2*w_cut*0.83 w_cut^2]);
+bode(lowpass); hold on;
+L = minreal(lowpass*K*G);
+T = minreal(L/(1 + L), 1e-7);
 
-% L = minreal(lowpass*K*G);
+stepinfo(T,'SettlingTimeThreshold', 0.01)
 
-% bode(L); hold on;
-% bode(G);
-% figure('Name', 'Loop gain FRF');
-% margin(L)
-
-% G_new = lowpass*G;
-
-
-
-% figure
-% margin(T)
+figure
+margin(T)
+[y_step, t_step] = step(T);
+plot_step = plot(t_step, y_step, 'Color', '#27ae60');
+set(plot_step, 'LineWidth', 1.7);
+ax = gca;
+xlim([0 max(t_step)])
+xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Amplitude', 'interpreter', 'latex', 'fontsize', 12);
+title('\textbf{Step response}', 'interpreter', 'latex', 'fontsize', 13);
+format_axes(ax);
 
 %% Requirements
 OS = 1;
