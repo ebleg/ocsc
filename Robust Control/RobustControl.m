@@ -70,10 +70,84 @@ L = minreal(K*G);
 T = minreal(L/(1 + L), 1e-7);
 S = minreal(1/(1 + L), 1e-7);
 
-%% Simulation
 stepinfo(T, 'SettlingTimeThreshold', 0.01)
 
-figure
-step(T)
+%% Plots
+close all;
 
-margin(L)
+% Step response
+[y_step, t_step] = step(T);
+plot_step = plot(t_step, y_step, 'Color', '#27ae60');
+set(plot_step, 'LineWidth', 1.7);
+ax = gca;
+xlim([0 max(t_step)])
+xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Amplitude', 'interpreter', 'latex', 'fontsize', 12);
+title('\textbf{Step response}', 'interpreter', 'latex', 'fontsize', 13);
+format_axes(ax);
+
+% Controller effort
+figure
+[y_input] = step(K/(1+K*G), t_step);
+plot_step = plot(t_step, y_input, 'Color', '#27ae60');
+set(plot_step, 'LineWidth', 1.7);
+ax = gca;
+xlim([0 max(t_step)])
+xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Amplitude', 'interpreter', 'latex', 'fontsize', 12);
+title('\textbf{Controller effort}', 'interpreter', 'latex', 'fontsize', 13);
+format_axes(ax);
+
+%% Sensitivity and complementary sensitivity
+% sens_plot = bodeplot(S);
+% opt = getoptions(sens_plot);
+% opt.PhaseVisible = 'off';
+% setoptions(sens_plot, opt);
+% 
+% ax = gca;
+% xlabel('$\omega$', 'interpreter', 'latex', 'fontsize', 12);
+% ylabel('$|S|$', 'interpreter', 'latex', 'fontsize', 12);
+% title('\textbf{Sensitivity}', 'interpreter', 'latex', 'fontsize', 13);
+% format_axes(ax);
+
+%% Complementary sensitivity
+comp_plot = bodeplot(T);
+opt = getoptions(comp_plot);
+opt.PhaseVisible = 'off';
+setoptions(comp_plot, opt);
+
+ax = gca;
+xlabel('$\omega$', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('$|S|$', 'interpreter', 'latex', 'fontsize', 12);
+title('\textbf{Complementary sensitivity}', 'interpreter', 'latex', 'fontsize', 13);
+format_axes(ax);
+
+%% Pole-zero plot
+plot(pole(G), 'x');
+hold on;
+plot(zero(G), 'o');
+
+%%
+format_axes(gca);
+
+%% Plant bode plot
+h = bodeplot(G);
+opt = getoptions(h);
+opt.XLabel.Interpreter = 'latex';
+opt.YLabel.Interpreter = 'latex';
+opt.Title.Interpreter = 'latex';
+setoptions(h, opt)
+title('\textbf{Plant Bode diagram}', 'Fontsize', 13);
+
+%% Plant Nyquist
+nyquistplot(-G)
+
+
+function format_axes(ax)
+    set(ax, 'TickLabelInterpreter', 'latex', 'TickDir', 'both');
+    set(ax, 'XGrid', 'on', 'YGrid', 'on');
+    set(ax.XAxis, 'LineWidth', 1);
+    set(ax.YAxis, 'LineWidth', 1);
+    set(ax, 'Box', 'off');
+end
+
