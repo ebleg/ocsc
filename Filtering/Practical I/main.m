@@ -93,11 +93,14 @@ plotresults(kf_pos, kf_diagP', mic_locations');
 F = eye(3);
 delta_tau = mean(diff(TOA_true));
 var_tau = var(diff(TOA_true));
-Q4 = blkdiag(eye(2)*1e-6, var_tau);
-R4 = diag(mic_variance);
+Q4 = blkdiag(eye(2)*3e-6, var_tau);
+R4 = 6*diag(mic_variance);
 
 % State 'dynamics'
 f_ext = @(x) [x(1), x(2), x(3) + delta_tau]';
+% f_ext_2 = @(xp, xpp) [xp + (xp - xpp); ...
+%                       xp(3) + delta_tau]; % Cool idea, but the state must
+%                       be extended to do this
 
 % Measurement model (same as f from Assignment 2)
 h_ext = @(x) f(x, mic_locations); % For readability
@@ -138,18 +141,22 @@ function [theta, diagP] = nls(yk, stds, th_hat0, maxiter, mic_locations)
 
     theta = th_hat0;
     count = 1;
-    P = eye(numel(th_hat0))*1e-6;
 
-%     W = stds*stds';
-    W = diag(stds.^2);
+    L = diag(stds);
+    W = inv(L*L');  % Assume uncorrelated errors
 
     while ~converged && ~max_iter_reached
         % Solve a linear least-squares model
         F = Jacobian(theta, mic_locations);
         yhat = f(theta, mic_locations);
-        d_theta = F\(yk - yhat);
+        
+        % Unweighted solution
+%         d_theta = F\(yk - yhat);
 
-        P = (F'*F)\F'*W*F/(F'*F);
+        % Weighted LSQ solution (BLUE)
+        d_theta = (F'*W*F)\F'*W*(yk - yhat);
+
+%         P = (F'*F)\F'*W*F/(F'*F);
 
         % Check convergence
         if norm(d_theta) < 1e-6
@@ -160,15 +167,13 @@ function [theta, diagP] = nls(yk, stds, th_hat0, maxiter, mic_locations)
             %            disp(theta)
         end
         
-
         count = count + 1;
         theta = theta + d_theta;
     end
-
-%     theta = lsqnonlin(@(x) yk - f(x, mic_locations), th_hat0);
-
-    diagP = diag(P);
     
+    % Variance of the BLUE
+    P = inv(F'*W*F);
+    diagP = diag(P);
 end
 
 function dF = Jacobian(theta, mic_locations)
