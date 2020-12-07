@@ -61,7 +61,32 @@ theta_hat(:,1) = []; % Remove the initial guess to obtain the correct length
 figure
 plotresults(theta_hat(1:2,:), diagP(1:2,:)', mic_locations');
 
-%% Assignment 3
+%% Assignment 3: Kalman filtering using "position measurements"
+A = eye(2);
+C = eye(2);
+P = eye(2);
+Q = eye(2)*1e-4;
+
+kf_pos = nan(2, N_exp+1);
+kf_P = nan(2, 2, N_exp+1);
+kf_diagP = nan(2, N_exp);
+
+kf_pos(:,1) = [0.1 0.6]';
+kf_P(:,:,1) = eye(2);
+kf_diagP(:,1) = diag(kf_P(:,:,1));
+
+for k = 2:(N_exp+1)
+    K = A*P*C'/(C*P*C' + diag(diagP(1:2,k-1)));
+    kf_pos(:,k) = (A - K*C)*kf_pos(:,k-1) + K*theta_hat(1:2,k-1);
+    kf_P(:,:,k) = A*kf_P(:,:,k-1)*A' + Q - K*C*kf_P(:,:,k-1)*A';
+    kf_diagP(:,k) = diag(kf_P(:,:,k));
+end
+
+figure
+kf_pos(:,1) = [];
+kf_P(:,:,1) = [];
+kf_diagP(:,1) = [];
+plotresults(kf_pos, kf_diagP', mic_locations');
 
 
 %% A4
