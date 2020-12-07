@@ -64,8 +64,7 @@ plotresults(theta_hat(1:2,:), diagP(1:2,:)', mic_locations');
 %% Assignment 3: Kalman filtering using "position measurements"
 A = eye(2);
 C = eye(2);
-P = eye(2);
-Q = eye(2)*1e-4;
+Q3 = eye(2)*1e-7;
 
 kf_pos = nan(2, N_exp+1);
 kf_P = nan(2, 2, N_exp+1);
@@ -76,9 +75,9 @@ kf_P(:,:,1) = eye(2);
 kf_diagP(:,1) = diag(kf_P(:,:,1));
 
 for k = 2:(N_exp+1)
-    K = A*P*C'/(C*P*C' + diag(diagP(1:2,k-1)));
+    K = A*kf_P(:,:,k-1)*C'/(C*kf_P(:,:,k-1)*C' + diag(diagP(1:2,k-1))*0.2);
     kf_pos(:,k) = (A - K*C)*kf_pos(:,k-1) + K*theta_hat(1:2,k-1);
-    kf_P(:,:,k) = A*kf_P(:,:,k-1)*A' + Q - K*C*kf_P(:,:,k-1)*A';
+    kf_P(:,:,k) = A*kf_P(:,:,k-1)*A' + Q3 - K*C*kf_P(:,:,k-1)*A';
     kf_diagP(:,k) = diag(kf_P(:,:,k));
 end
 
@@ -89,7 +88,47 @@ kf_diagP(:,1) = [];
 plotresults(kf_pos, kf_diagP', mic_locations');
 
 
-%% A4
+%% Assignment 4: Extended Kalman filter using TOA measurements
+% States = [x, y, tau]
+F = eye(3);
+delta_tau = mean(diff(TOA_true));
+var_tau = var(diff(TOA_true));
+Q4 = blkdiag(eye(2)*1e-6, var_tau);
+R4 = diag(mic_variance);
+
+% State 'dynamics'
+f_ext = @(x) [x(1), x(2), x(3) + delta_tau]';
+
+% Measurement model (same as f from Assignment 2)
+h_ext = @(x) f(x, mic_locations); % For readability
+
+ekf_x = nan(3, N_exp+1);
+ekf_P = nan(3, 3, N_exp+1);
+ekf_diagP = nan(3, N_exp);
+
+ekf_x(:,1) = [0.1 0.6 0]';
+ekf_P(:,:,1) = eye(3);
+ekf_diagP(:,1) = diag(ekf_P(:,:,1));
+
+for k = 2:(N_exp+1)
+    % Time update
+    ekf_x(:,k) = f_ext(ekf_x(:,k-1));
+    ekf_P(:,:,k) = F*ekf_P(:,:,k-1)*F' + Q4;
+    
+    % Measurement update
+    H = Jacobian(ekf_x(:,k), mic_locations);
+    K = ekf_P(:,:,k)*H'/(H*ekf_P(:,:,k)*H' + R4);
+    ekf_x(:,k) = ekf_x(:,k) + K*(y_bias_correct(k-1,:)' - h_ext(ekf_x(:,k)));
+    ekf_P(:,:,k) = ekf_P(:,:,k) ...
+               - ekf_P(:,:,k)*H'*((H*ekf_P(:,:,k)*H' + R4)\H*ekf_P(:,:,k));
+    ekf_diagP(:,k) = diag(ekf_P(:,:,k));
+end
+
+figure
+ekf_x(:,1) = [];
+ekf_P(:,:,1) = [];
+ekf_diagP(:,1) = [];
+plotresults(ekf_x(1:2,:), ekf_diagP(1:2,:)', mic_locations');
 
 %% Functions
 function [theta, diagP] = nls(yk, stds, th_hat0, maxiter, mic_locations)
