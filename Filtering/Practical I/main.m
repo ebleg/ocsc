@@ -27,11 +27,11 @@ mic_bias = mean(mic_error);
 % Question 1c: Microphone variance
 mic_variance = var(mic_error - mic_bias);
 
-% Question 1d: Visualization with histogram
-% figure
-% hist_microphone = 1;
-% histogram(mic_error(:,hist_microphone), 6, 'Normalization', 'pdf');
-% title(sprintf('Error of microphone %d', hist_microphone))
+%Question 1d: Visualization with histogram
+figure
+hist_microphone = 1;
+histogram(mic_error(:,hist_microphone), 6, 'Normalization', 'pdf');
+title(sprintf('Error of microphone %d', hist_microphone))
 
 % figure
 % bar(mic_bias)
@@ -50,7 +50,7 @@ theta_hat(:,1) = [0.1 0.6 0]';
 
 % Question 2b
 for k = 2:(N_exp+1)
-    [theta_hat(:,k), diagP(:,k-1)] = nls(y_bias_correct(k-1,:)', ...
+    [theta_hat(:,k), diagP(:,k-1), F] = nls(y_bias_correct(k-1,:)', ...
         sqrt(mic_variance), ...
         theta_hat(:,k-1), ...
         100, mic_locations);
@@ -64,7 +64,7 @@ plotresults(theta_hat(1:2,:), diagP(1:2,:)', mic_locations');
 %% Assignment 3: Kalman filtering using "position measurements"
 A = eye(2);
 C = eye(2);
-Q3 = eye(2)*1e-7;
+Q3 = eye(2)*2e-7;
 
 kf_pos = nan(2, N_exp+1);
 kf_P = nan(2, 2, N_exp+1);
@@ -73,7 +73,7 @@ kf_pos(:,1) = [0.1 0.6]';
 kf_P(:,:,1) = eye(2);
 
 for k = 2:(N_exp+1)
-    K = A*kf_P(:,:,k-1)*C'/(C*kf_P(:,:,k-1)*C' + diag(diagP(1:2,k-1))*0.2);
+    K = A*kf_P(:,:,k-1)*C'/(C*kf_P(:,:,k-1)*C' + diag(diagP(1:2,k-1))*0.5);
     kf_pos(:,k) = (A - K*C)*kf_pos(:,k-1) + K*theta_hat(1:2,k-1);
     kf_P(:,:,k) = A*kf_P(:,:,k-1)*A' + Q3 - K*C*kf_P(:,:,k-1)*A';
 end
@@ -88,8 +88,8 @@ plotresults(kf_pos, dimdiag(kf_P, 3)', mic_locations');
 F = eye(3);
 delta_tau = mean(diff(TOA_true));
 var_tau = var(diff(TOA_true));
-Q4 = blkdiag(eye(2)*3e-6, var_tau);
-R4 = 6*diag(mic_variance);
+Q4 = blkdiag(eye(2)*3e-7, var_tau);
+R4 = 1.8*diag(mic_variance);
 
 % State 'dynamics'
 f_ext = @(x) [x(1), x(2), x(3) + delta_tau]';
@@ -125,7 +125,7 @@ ekf_P(:,:,1) = [];
 plotresults(ekf_x(1:2,:), dimdiag(ekf_P(1:2,1:2,:), 3)', mic_locations');
 
 %% Functions
-function [theta, diagP] = nls(yk, stds, th_hat0, maxiter, mic_locations)
+function [theta, diagP, F] = nls(yk, stds, th_hat0, maxiter, mic_locations)
     % NLS algorithm
     converged = false;
     max_iter_reached = false;
