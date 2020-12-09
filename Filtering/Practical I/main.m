@@ -68,25 +68,20 @@ Q3 = eye(2)*1e-7;
 
 kf_pos = nan(2, N_exp+1);
 kf_P = nan(2, 2, N_exp+1);
-kf_diagP = nan(2, N_exp);
 
 kf_pos(:,1) = [0.1 0.6]';
 kf_P(:,:,1) = eye(2);
-kf_diagP(:,1) = diag(kf_P(:,:,1));
 
 for k = 2:(N_exp+1)
     K = A*kf_P(:,:,k-1)*C'/(C*kf_P(:,:,k-1)*C' + diag(diagP(1:2,k-1))*0.2);
     kf_pos(:,k) = (A - K*C)*kf_pos(:,k-1) + K*theta_hat(1:2,k-1);
     kf_P(:,:,k) = A*kf_P(:,:,k-1)*A' + Q3 - K*C*kf_P(:,:,k-1)*A';
-    kf_diagP(:,k) = diag(kf_P(:,:,k));
 end
 
 figure
 kf_pos(:,1) = [];
 kf_P(:,:,1) = [];
-kf_diagP(:,1) = [];
-plotresults(kf_pos, kf_diagP', mic_locations');
-
+plotresults(kf_pos, dimdiag(kf_P, 3)', mic_locations');
 
 %% Assignment 4: Extended Kalman filter using TOA measurements
 % States = [x, y, tau]
@@ -107,11 +102,9 @@ h_ext = @(x) f(x, mic_locations); % For readability
 
 ekf_x = nan(3, N_exp+1);
 ekf_P = nan(3, 3, N_exp+1);
-ekf_diagP = nan(3, N_exp);
 
 ekf_x(:,1) = [0.1 0.6 0]';
 ekf_P(:,:,1) = eye(3);
-ekf_diagP(:,1) = diag(ekf_P(:,:,1));
 
 for k = 2:(N_exp+1)
     % Time update
@@ -124,14 +117,12 @@ for k = 2:(N_exp+1)
     ekf_x(:,k) = ekf_x(:,k) + K*(y_bias_correct(k-1,:)' - h_ext(ekf_x(:,k)));
     ekf_P(:,:,k) = ekf_P(:,:,k) ...
                - ekf_P(:,:,k)*H'*((H*ekf_P(:,:,k)*H' + R4)\H*ekf_P(:,:,k));
-    ekf_diagP(:,k) = diag(ekf_P(:,:,k));
 end
 
 figure
 ekf_x(:,1) = [];
 ekf_P(:,:,1) = [];
-ekf_diagP(:,1) = [];
-plotresults(ekf_x(1:2,:), ekf_diagP(1:2,:)', mic_locations');
+plotresults(ekf_x(1:2,:), dimdiag(ekf_P(1:2,1:2,:), 3)', mic_locations');
 
 %% Functions
 function [theta, diagP] = nls(yk, stds, th_hat0, maxiter, mic_locations)
@@ -163,8 +154,8 @@ function [theta, diagP] = nls(yk, stds, th_hat0, maxiter, mic_locations)
             converged = true;
         elseif count > maxiter
             max_iter_reached = true;
-            %            warning('Max iterations reached')
-            %            disp(theta)
+%             warning('Max iterations reached')
+%             disp(theta)
         end
         
         count = count + 1;
@@ -194,4 +185,15 @@ function ftheta = f(theta, mic_locations)
         + vecnorm([theta(1) theta(2)] - mic_locations, 2, 2)/c);
     % Slightly verbose notation to avoid issues with theta being a column
     % vector
+end
+
+function res = dimdiag(A, dim)
+    A_size = size(A);
+    N = A_size(dim); A_size(dim) = [];
+    res = nan(A_size(1));
+    A = shiftdim(A, dim);
+        
+    for i = 1:N
+        res(:,i) = diag(squeeze(A(:,:,i)));
+    end
 end
