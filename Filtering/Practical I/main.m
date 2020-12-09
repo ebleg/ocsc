@@ -1,12 +1,12 @@
-%% ------------------------------------------------------------------------
+%% -----------------------------------------------------
 %  Filtering and Identification assignment 1
-%  ------------------------------------------------------------------------
+%  -----------------------------------------------------
 %
-%    Fères Hassan (4362152) & Emiel Legrand (4446100)
+%    Feres Hassan (4362152) 
+%       & Emile-Bernard Legrand (4446100)
 %
 %    December 10, 2020
-% -------------------------------------------------------------------------
-
+% -----------------------------------------------------
 clear; clc; close all
 
 %% Plot settings
@@ -28,9 +28,15 @@ mic_bias = mean(mic_error);
 mic_variance = var(mic_error - mic_bias);
 
 % Question 1d: Visualization with histogram
+
+[N, l] = hist(mic_error(:,1),20);
+Wb = l(2)-l(1); % Bin width
+Ny = length(mic_error(:,1)); % Nr of samples
+fig1 = bar(l, N/(Ny*Wb));
+
 % figure
 % hist_microphone = 1;
-% histogram(mic_error(:,hist_microphone), 6, 'Normalization', 'pdf');
+% histogram(mic_error(:,hist_microphone), 100, 'Normalization', 'pdf');
 % title(sprintf('Error of microphone %d', hist_microphone))
 
 % figure
@@ -59,7 +65,7 @@ theta_hat(:,1) = []; % Remove the initial guess to obtain the correct length
 
 % Question 2c: Visualize the results
 figure
-plotresults(theta_hat(1:2,:), diagP(1:2,:)', mic_locations');
+fig2 = plotresults(theta_hat(1:2,:), diagP(1:2,:)', mic_locations');
 
 %% Assignment 3: Kalman filtering using "position measurements"
 A = eye(2);
@@ -81,7 +87,7 @@ end
 figure
 kf_pos(:,1) = [];
 kf_P(:,:,1) = [];
-plotresults(kf_pos, dimdiag(kf_P, 3)', mic_locations');
+fig4 = plotresults(kf_pos, dimdiag(kf_P, 3)', mic_locations');
 
 %% Assignment 4: Extended Kalman filter using TOA measurements
 % States = [x, y, tau]
@@ -122,7 +128,8 @@ end
 figure
 ekf_x(:,1) = [];
 ekf_P(:,:,1) = [];
-plotresults(ekf_x(1:2,:), dimdiag(ekf_P(1:2,1:2,:), 3)', mic_locations');
+fig5 = plotresults(ekf_x(1:2,:), ...
+                         dimdiag(ekf_P(1:2,1:2,:), 3)', mic_locations');
 
 %% Functions
 function [theta, diagP] = nls(yk, stds, th_hat0, maxiter, mic_locations)
@@ -146,8 +153,6 @@ function [theta, diagP] = nls(yk, stds, th_hat0, maxiter, mic_locations)
 
         % Weighted LSQ solution (BLUE)
         d_theta = (F'*W*F)\F'*W*(yk - yhat);
-
-%         P = (F'*F)\F'*W*F/(F'*F);
 
         % Check convergence
         if norm(d_theta) < 1e-6
