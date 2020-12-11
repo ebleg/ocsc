@@ -93,9 +93,9 @@ end
 theta_hat(:,1) = []; % Remove the initial guess to obtain the correct length
 
 % Question 2c: Visualize the results
-% figure
-% plotresults(theta_hat(1:2,:), diagP(1:2,:)', mic_locations'); 
-% fig2 = gcf;
+figure
+plotresults(theta_hat(1:2,:), diagP(1:2,:)', mic_locations'); 
+fig2 = gcf;
 
 %% Assignment 3: Kalman filtering using "position measurements"
 A = eye(2);
@@ -126,8 +126,8 @@ plotresults(kf_pos, dimdiag(kf_P, 3)', mic_locations'); fig3 = gcf;
 F = eye(3);
 delta_tau = mean(diff(TOA_true));
 var_tau = var(diff(TOA_true));
-Q4 = blkdiag(eye(2)*3e-7, var_tau);
-R4 = 1.8*diag(mic_variance);
+Q4 = blkdiag(eye(2)*4e-8, var_tau*1e-4);
+R4 = 0.17*diag(mic_variance);
 
 % State 'dynamics'
 f_ext = @(x) [x(1), x(2), x(3) + delta_tau]';
@@ -141,7 +141,7 @@ h_ext = @(x) f(x, mic_locations); % For readability
 ekf_x = nan(3, N_exp+1);
 ekf_P = nan(3, 3, N_exp+1);
 
-ekf_x(:,1) = [0.1 0.6 0]';
+ekf_x(:,1) = [0.4 0.6 0]';
 ekf_P(:,:,1) = eye(3);
 
 for k = 2:(N_exp+1)
@@ -157,11 +157,11 @@ for k = 2:(N_exp+1)
                - ekf_P(:,:,k)*H'*((H*ekf_P(:,:,k)*H' + R4)\H*ekf_P(:,:,k));
 end
 
-% figure
-% ekf_x(:,1) = [];
-% ekf_P(:,:,1) = [];
-% plotresults(ekf_x(1:2,:), dimdiag(ekf_P(1:2,1:2,:), 3)', mic_locations');
-% fig4 = gcf;
+figure
+ekf_x(:,1) = [];
+ekf_P(:,:,1) = [];
+plotresults(ekf_x(1:2,:), dimdiag(ekf_P(1:2,1:2,:), 3)', mic_locations');
+fig4 = gcf;
 
 %% Functions
 function [theta, diagP, F] = nls(yk, stds, th_hat0, maxiter, mic_locations)
