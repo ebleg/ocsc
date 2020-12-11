@@ -22,6 +22,8 @@ t = linspace(0,2*pi) ;
 for j = 1:length(trajEst)
     Px(j,:) = 100*sqrt(diagP(j,1))*cos(t) + trajEst(1,j);
     Py(j,:) = 100*sqrt(diagP(j,2))*sin(t) + trajEst(2,j);
+%     Px(j,:) = 1*sqrt(diagP(j,1))*cos(t) + trajEst(1,j);
+%     Py(j,:) = 1*sqrt(diagP(j,2))*sin(t) + trajEst(2,j);
 end
 
 P(1,1:117,1:100) = Px;

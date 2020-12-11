@@ -10,6 +10,19 @@
 clear; clc; close all
 
 %% Plot settings
+set(groot, 'defaultTextInterpreter', 'latex');
+set(groot, 'defaultLegendInterpreter', 'latex');
+set(groot, 'defaultAxesTickLabelInterpreter', 'latex');
+set(groot, 'defaultAxesXGrid','on');
+set(groot, 'defaultAxesYGrid','on');
+set(groot, 'defaultAxesZGrid','on');
+set(groot, 'defaultAxesXMinorGrid','on');
+set(groot, 'defaultAxesYMinorGrid','on');
+set(groot, 'defaultAxesZMinorGrid','on');
+set(groot, 'defaultAxesTitleFontSizeMultiplier', 1.5);
+set(groot, 'defaultAxesXMinorGridMode','manual');
+set(groot, 'defaultAxesYMinorGridMode','manual');
+set(groot, 'defaultAxesYMinorGridMode','manual');
 
 %% Assignment 1
 load('calibration.mat')
@@ -28,18 +41,32 @@ mic_bias = mean(mic_error);
 mic_variance = var(mic_error - mic_bias);
 
 % Question 1d: Visualization with histogram
-[N, l] = hist(mic_error(:,1),20);
+hist_microphone = 1;
+[N, l] = hist(mic_error(:,hist_microphone),20);
 Wb = l(2)-l(1); % Bin width
 Ny = length(mic_error(:,1)); % Nr of samples
-fig1 = bar(l, N/(Ny*Wb));
+% fig1 = bar(l, N/(Ny*Wb));
+% xlabel('Measurement error')
+% ylabel('Occurence')
+% title('Measurement error Microphone 1)', 'Interpreter','latex');
+% 
 
 % figure
-% hist_microphone = 1;
 % histogram(mic_error(:,hist_microphone), 100, 'Normalization', 'pdf');
 % title(sprintf('Error of microphone %d', hist_microphone))
 
+%%
+% close all;
 % figure
-% bar(mic_bias)
+% tile = tiledlayout(1, 2, 'TileSpacing', 'Compact', 'Padding', 'Compact');
+% nexttile
+% bar(mic_bias);
+% title('Microphone bias'); ylabel('Bias [s]')
+% nexttile
+% bar(mic_variance);
+% title('Microphone variance'); ylabel('Variance [s$^2$]');
+% xlabel(tile, 'Microphone', 'Interpreter', 'latex');
+
 
 %% Assignment 2: Nonlinear least-squares
 load('experiment.mat')
@@ -59,23 +86,29 @@ for k = 2:(N_exp+1)
         sqrt(mic_variance), ...
         theta_hat(:,k-1), ...
         100, mic_locations);
+    if k == 2 || k == 72 || k == 91
+       disp(cond(F)); 
+    end
 end
 theta_hat(:,1) = []; % Remove the initial guess to obtain the correct length
 
 % Question 2c: Visualize the results
-figure
-fig2 = plotresults(theta_hat(1:2,:), diagP(1:2,:)', mic_locations');
+% figure
+% plotresults(theta_hat(1:2,:), diagP(1:2,:)', mic_locations'); 
+% fig2 = gcf;
 
 %% Assignment 3: Kalman filtering using "position measurements"
 A = eye(2);
 C = eye(2);
 Q3 = eye(2)*2e-7;
+% Q3 = eye(2)*0.0036;
 
 kf_pos = nan(2, N_exp+1);
 kf_P = nan(2, 2, N_exp+1);
 
 kf_pos(:,1) = [0.1 0.6]';
 kf_P(:,:,1) = eye(2);
+% kf_P(:,:,1) = Q3;
 
 for k = 2:(N_exp+1)
     K = A*kf_P(:,:,k-1)*C'/(C*kf_P(:,:,k-1)*C' + diag(diagP(1:2,k-1))*0.5);
@@ -86,7 +119,7 @@ end
 figure
 kf_pos(:,1) = [];
 kf_P(:,:,1) = [];
-fig4 = plotresults(kf_pos, dimdiag(kf_P, 3)', mic_locations');
+plotresults(kf_pos, dimdiag(kf_P, 3)', mic_locations'); fig3 = gcf;
 
 %% Assignment 4: Extended Kalman filter using TOA measurements
 % States = [x, y, tau]
@@ -124,11 +157,11 @@ for k = 2:(N_exp+1)
                - ekf_P(:,:,k)*H'*((H*ekf_P(:,:,k)*H' + R4)\H*ekf_P(:,:,k));
 end
 
-figure
-ekf_x(:,1) = [];
-ekf_P(:,:,1) = [];
-fig5 = plotresults(ekf_x(1:2,:), ...
-                         dimdiag(ekf_P(1:2,1:2,:), 3)', mic_locations');
+% figure
+% ekf_x(:,1) = [];
+% ekf_P(:,:,1) = [];
+% plotresults(ekf_x(1:2,:), dimdiag(ekf_P(1:2,1:2,:), 3)', mic_locations');
+% fig4 = gcf;
 
 %% Functions
 function [theta, diagP, F] = nls(yk, stds, th_hat0, maxiter, mic_locations)
@@ -154,7 +187,7 @@ function [theta, diagP, F] = nls(yk, stds, th_hat0, maxiter, mic_locations)
         d_theta = (F'*W*F)\F'*W*(yk - yhat);
 
         % Check convergence
-        if norm(d_theta) < 1e-6
+        if norm(d_theta) < 1e-10
             converged = true;
         elseif count > maxiter
             max_iter_reached = true;
