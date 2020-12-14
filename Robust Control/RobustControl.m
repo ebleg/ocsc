@@ -182,6 +182,7 @@ title('\textbf{Plant Bode diagram}', 'Fontsize', 13);
 % nyquistplot(-G)
 
 %% Disturbance rejection
+
 [y_step, t_step] = step(S*G_MIMO(1, 3));
 plot(t_step, y_step, 'LineWidth', 1.7, 'Color', '#27ae60');
 format_axes(gca)
