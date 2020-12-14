@@ -20,19 +20,34 @@ G_MIMO = tf(sys);
 G = G_MIMO(1, 1);
 
 %% PI Controller, with Ziegler Nichols values
-Kp = -16.21/3.2; % Tuning parameters based on Ziegler and Nichols 
-Ti = 31/1.5;
-K_PI = pid(Kp, Kp/Ti);
+Kp = -2.5250; % Tuning parameters based on Ziegler and Nichols 
+Ti = 11.6910;
+Td = -0.03;
+Tf = 10;
+K_PI = pid(Kp, Kp/Ti, Kp*Td, Tf);
 L_PI = minreal(K_PI*G);
 T_PI = minreal(L_PI/(1 + L_PI), 1e-7);
-stepinfo(T_PI,'SettlingTimeThreshold', 0.01)
+stepinfo(T_PI,'SettlingTimeThreshold', 0.01);
 
-%% Low pass filter
-w_cut = 0.1; % Initial value
-lowpass = tf([0 0 w_cut^2], [1 2*w_cut*0.8 w_cut^2]); % Low pass filter
-L_LP = minreal(lowpass*K_PI*G);
-T_LP_PI = minreal(L_LP/(1 + L_LP), 1e-7);
-stepinfo(T_LP_PI,'SettlingTimeThreshold', 0.01)
+% Low pass filter
+w_cut = 0.1144; % Initial value
+lowpass = tf([0 0 w_cut^2], [1 2*w_cut*0.9913 w_cut^2]); % Low pass filter
+L = minreal(lowpass*K_PI*G);
+T = minreal(L/(1+L), 1e-7);
+
+stepinfo(T, 'SettlingTimeThreshold', 0.01)
+
+figure
+[y_step, t_step] = step(T);
+plot_step = plot(t_step, y_step, 'Color', '#27ae60');
+set(plot_step, 'LineWidth', 1.7);
+ax = gca;
+xlim([0 max(t_step)])
+xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Amplitude', 'interpreter', 'latex', 'fontsize', 12);
+%title('\textbf{Step response}', 'interpreter', 'latex', 'fontsize', 13);
+format_axes(ax);
+
 
 %% Requirements
 OS = 1;
@@ -61,16 +76,14 @@ L = minreal(K*G);
 T = minreal(L/(1 + L), 1e-7);
 S = minreal(1/(1 + L), 1e-7);
 
-stepinfo(T, 'SettlingTimeThreshold', 0.01)
-
 %% Plots
 close all;
 
 % Proportional gain
 G_margins = allmargin(-G); % Compute all the margins
-for K = linspace(1, G_margins.GainMargin, 4)
-    [y_step, t_step] = step(feedback(-K*G, 1), 0:0.2:80);
-    plot(t_step, y_step, 'DisplayName', sprintf('$K = -%.1f$', K));
+for K_G = linspace(1, G_margins.GainMargin, 4)
+    [y_step, t_step] = step(feedback(-K_G*G, 1), 0:0.2:80);
+    plot(t_step, y_step, 'DisplayName', sprintf('$K = -%.1f$', K_G));
     hold on; grid; grid minor;
 end
 format_axes(gca)
@@ -180,7 +193,6 @@ setoptions(h, opt)
 nyquistplot(-G)
 
 %% Disturbance rejection
-
 [y_step, t_step] = step(S*G_MIMO(1, 3));
 plot(t_step, y_step, 'LineWidth', 1.7, 'Color', '#27ae60');
 format_axes(gca)

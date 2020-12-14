@@ -50,9 +50,9 @@ load('C_best_2.mat'); % Load transfer function
 num = num{1}; den = den{1};
 w_lp = sqrt(den(3));
 zeta_lp = den(2)/2/w_lp;
+
 Kp = num(3)/w_lp^2;
 Ti = w_lp^2*Kp/num(4);
-
 % Check final controller, implement parameters from above
 K = -w_lp^2/(s^2 + 2*zeta_lp*w_lp*s + w_lp^2) ... % Low pass filter
     *Kp*(1 + 1/Ti/s); % PI controller
@@ -68,9 +68,9 @@ close all;
 
 % Proportional gain
 G_margins = allmargin(-G); % Compute all the margins
-for K = linspace(1, G_margins.GainMargin, 4)
-    [y_step, t_step] = step(feedback(-K*G, 1), 0:0.2:80);
-    plot(t_step, y_step, 'DisplayName', sprintf('$K = -%.1f$', K));
+for K_G = linspace(1, G_margins.GainMargin, 4)
+    [y_step, t_step] = step(feedback(-K_G*G, 1), 0:0.2:80);
+    plot(t_step, y_step, 'DisplayName', sprintf('$K = -%.1f$', K_G));
     hold on; grid; grid minor;
 end
 format_axes(gca)
@@ -180,7 +180,6 @@ setoptions(h, opt)
 nyquistplot(-G)
 
 %% Disturbance rejection
-
 [y_step, t_step] = step(S*G_MIMO(1, 3));
 plot(t_step, y_step, 'LineWidth', 1.7, 'Color', '#27ae60');
 format_axes(gca)
