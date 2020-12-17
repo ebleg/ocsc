@@ -124,6 +124,8 @@ ylabel('Amplitude', 'interpreter', 'latex', 'fontsize', 12);
 %title('\textbf{Step response}', 'interpreter', 'latex', 'fontsize', 13);
 format_axes(ax);
 
+
+
 % Controller effort
 figure
 [y_input] = step(K/(1+K*G), t_step);
