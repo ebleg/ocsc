@@ -117,39 +117,41 @@ xlim([min(t) max(t)]);
 nexttile
 KS = tf(minreal(K2*S, [], false));
 y2 = step(KS(2,1), t);
+
 plot(t, y2);
 xlim([min(t) max(t)]);
 title('Controller effort');
 title(tile, '\textbf{Time simulation: step response}', 'interpreter', 'latex')
 
 % Disturbance rejection
-% figure
-% tile = tiledlayout(1, 2, 'Padding', 'compact', 'Tilespacing', 'compact');
-% nexttile
-% GdS = tf(minreal(S*G_MIMO(:, 3), [], false));
-% [y3, t] = step(GdS(1,1));
-% plot(t, y3);
-% title('Disturbance rejection');
-% xlim([min(t) max(t)]);
-% nexttile
-% KGdS = tf(minreal(K2*S*G_MIMO(:, 3), [], false));
-% y4 = step(KS(1,1), t);
-% plot(t, y4);
-% xlim([min(t) max(t)]);
-% title('Controller effort');
-% title(tile, '\textbf{Time simulation: disturbance rejection}', 'interpreter', 'latex')
+figure
+tile = tiledlayout(1, 2, 'Padding', 'compact', 'Tilespacing', 'compact');
+nexttile
+GdS = tf(minreal(S*G_MIMO(:, 3), [], false));
+[y3, t] = step(GdS(1,1));
+plot(t, y3);
+title('Disturbance rejection');
+xlim([min(t) max(t)]);
+nexttile
+KGdS = tf(minreal(K2*S*G_MIMO(:, 3), [], false));
+y4 = step(KS(1,1), t);
+plot(t, y4);
+xlim([min(t) max(t)]);
+title('Controller effort');
+title(tile, '\textbf{Time simulation: disturbance rejection}', 'interpreter', 'latex')
 
-% figure
-% [S_mag, ~, w_out] = bode(S(1,1));
-% [Wp_mag, ~] = bode(1/Wp11, w_out);
-% semilogx(w_out, squeeze(20*log10(S_mag)), 'displayname', '$S_{11}$'); hold on;
-% semilogx(w_out, squeeze(20*log10(Wp_mag)), 'displayname', '$W_{p}$');
-% xlim([min(w_out) max(w_out)]);
-% title('\textbf{Sensitivity}', 'interpreter', 'latex');
-% xlabel('\textbf{Frequency (rad/s)}', 'interpreter', 'latex');
-% ylabel('\textbf{Magnitude (dB)}', 'interpreter', 'latex');
-% grid
-% legend;
+figure
+[S_mag, ~, w_out] = bode(S(1,1));
+[Wp_mag, ~] = bode(1/Wp11, w_out);
+semilogx(w_out, squeeze(20*log10(S_mag)), 'displayname', '$S_{11}$'); hold on;
+semilogx(w_out, squeeze(20*log10(Wp_mag)), 'displayname', '$W_{p}$');
+xlim([min(w_out) max(w_out)]);
+title('\textbf{Sensitivity}', 'interpreter', 'latex');
+xlabel('\textbf{Frequency (rad/s)}', 'interpreter', 'latex');
+ylabel('\textbf{Magnitude (dB)}', 'interpreter', 'latex');
+grid
+legend;
+
 
 %% 
 % Nyquist plot
@@ -224,6 +226,7 @@ V_meas = Wind_Data.Data;
 % figure
 % plot(omega_rng, freq_meas(1:n/2+1)) 
 
+
 omg1 = 2*pi/1600; % Slow frequency
 omg2 = 10*2*pi; % High frequency
 Wu211 = 1/100*(1 + s/omg1)/(1 + s/(1e3*omg1));
@@ -254,18 +257,18 @@ Wu2 = [Wu211 0; 0 Wu222];
 
 %% 
 % *Connect the systems*
-% systemnames = 'G2 Gd Wp2 Wu2';
-% inputvar = '[V; beta; tau_e]';
-% 
-% input_to_G2 = '[beta; tau_e]';
-% input_to_Gd = '[V]';
-% 
-% input_to_Wp2 = '[-G2 - Gd]';
-% input_to_Wu2 = '[beta; tau_e]';
-% 
-% outputvar = '[Wp2; Wu2; -G2 - Gd]';
-% sysoutname = 'P2'; cleanupsysic = 'yes';
-% sysic;
+systemnames = 'G2 Gd Wp2 Wu2';
+inputvar = '[V; beta; tau_e]';
+
+input_to_G2 = '[beta; tau_e]';
+input_to_Gd = '[V]';
+
+input_to_Wp2 = '[G2 + Gd]';
+input_to_Wu2 = '[beta; tau_e]';
+
+outputvar = '[Wp2; Wu2; G2 +Gd]';
+sysoutname = 'P2'; cleanupsysic = 'yes';
+sysic;
 
 P2 = [Wp2*Gd -Wp2*G2; zeros(2,1) Wu2; Gd -G2];
 
@@ -368,5 +371,4 @@ plot(re, -im); hold on;
 title('Focus on origin');
 xlabel('Re'); ylabel('Im');
 title(tile, 'Generalized Nyquist')
-
 
