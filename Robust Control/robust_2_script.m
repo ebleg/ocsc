@@ -7,7 +7,7 @@ clear; clc; close all;
 load assignment_data_sc42145
 sys = ss(A,B,C,D);
 G_MIMO = tf(sys);
-G = G_MIMO(:,1:2); % Check if they want us to do this
+G = G_MIMO(:,1:2);
 
 s = tf('s');
 
@@ -15,13 +15,14 @@ s = tf('s');
 % Compute the RGA for $$\omega=0$$ and $$\omega = 0.4\times2\times \pi$. What 
 % can you conclude?
 
-RGA = @(G, omega) evalfr(G, omega).*pinv(evalfr(G, omega)).';
+RGA = @(G, omega) evalfr(G, omega).*pinv(evalfr(G, omega))';
 
 disp('RGA (omega = 0):');
 disp(RGA(G, 0))
 
 disp('RGA (omega = 0.8*pi):');
 disp(RGA(G, 0.8*pi))
+
 
 %% 
 % *Observations*
@@ -106,20 +107,20 @@ S = minreal(inv(eye(2) + L), [], false);
 T = minreal(L*S, [], false);
 
 % Step response
-% figure
-% tile = tiledlayout(1, 2, 'Padding', 'compact', 'Tilespacing', 'compact');
-% nexttile
-% [y1, t] = step(T(1,1));
-% plot(t, y1);
-% title('Step response');
-% xlim([min(t) max(t)]);
-% nexttile
-% KS = tf(minreal(K2*S, [], false));
-% y2 = step(KS(1,1), t);
-% plot(t, y2);
-% xlim([min(t) max(t)]);
-% title('Controller effort');
-% title(tile, '\textbf{Time simulation: step response}', 'interpreter', 'latex')
+figure
+tile = tiledlayout(1, 2, 'Padding', 'compact', 'Tilespacing', 'compact');
+nexttile
+[y1, t] = step(T(1,1));
+plot(t, y1);
+title('Step response');
+xlim([min(t) max(t)]);
+nexttile
+KS = tf(minreal(K2*S, [], false));
+y2 = step(KS(2,1), t);
+plot(t, y2);
+xlim([min(t) max(t)]);
+title('Controller effort');
+title(tile, '\textbf{Time simulation: step response}', 'interpreter', 'latex')
 
 % Disturbance rejection
 % figure
@@ -213,27 +214,43 @@ Gd_scaled = Gd;
 
 load Assignment_Data_SC42145
 V_meas = Wind_Data.Data;
-freq_meas = fft(V_meas);
-sampling_mean = mean(diff(Wind_Data.Time));
+% freq_meas = fft(V_meas);
+% sampling_mean = mean(diff(Wind_Data.Time));
+% 
+% n = numel(V_meas);
+% omega_rng = 1/sampling_mean*(0:(n/2))/n;
+% freq_meas = abs(freq_meas/n);
+% 
+% figure
+% plot(omega_rng, freq_meas(1:n/2+1)) 
 
-n = numel(V_meas);
-omega_rng = 1/sampling_mean*(0:(n/2))/n;
-freq_meas = abs(freq_meas/n);
-
-figure
-plot(omega_rng, freq_meas(1:n/2+1)) 
-
-omg1 = 2*pi/1000;
-omg2 = 0.12*2*pi;
-Wu211 = 1/100*(1 + s/omg1)/(1 + s/(100*omg1));
-Wu222 = (1 + s/(100*omg1))/(1 + s/(omg1));
+omg1 = 2*pi/1600; % Slow frequency
+omg2 = 10*2*pi; % High frequency
+Wu211 = 1/100*(1 + s/omg1)/(1 + s/(1e3*omg1));
+Wu222 = 25*(1 + s/(omg2))/(1 + s/(omg2/1e6));
 
 % figure;
 % bodemag(Wu211); hold on;
 % bodemag(Wu222);
 
-Wp2 = Wp11;
+Wp2 = Wp11/Gd;
 Wu2 = [Wu211 0; 0 Wu222];
+
+% Bartje 
+% Wp_bart = (1000*s + 4.524)/(5*s + 0.0004524); 
+% wu_bart_11 = (s + 10^-5)/(0.0001*s + 0.00001);
+% wu_bart_22 = (0.0001*s + 1)/(s + 10^-8);
+% Wu_bart = [wu_bart_11 0; 0 wu_bart_22];             % Control weight
+
+% bodemag(Wu2); hold on
+% bodemag(Wu_bart)
+% legend('wij', 'zij');
+% 
+% figure; hold on;
+% bodemag(Wp2)
+% bodemag(Wp_bart)
+% bodemag(Wp2/Gd);
+% legend('wij', 'zij', 'wij scaled')
 
 %% 
 % *Connect the systems*
@@ -250,13 +267,13 @@ Wu2 = [Wu211 0; 0 Wu222];
 % sysoutname = 'P2'; cleanupsysic = 'yes';
 % sysic;
 
-P2 = [Wp2*Gd -Wp2*G2; zeros(2,1) -Wu2; Gd -G2];
+P2 = [Wp2*Gd -Wp2*G2; zeros(2,1) Wu2; Gd -G2];
 
 P2 = balreal(minreal(P2, [], false));
 %% 
 % *Compute the* $$H_\infty$$*-controller* 
 
-[K3, ~, gam2, ~] = hinfsyn(P2, 1, 2);
+[K3, CL_MIMO, gam2, ~] = hinfsyn(P2, 1, 2);
 disp(gam2)
 K3 = balreal(minreal(K3, 1e-6, false));
 
@@ -264,12 +281,92 @@ L2 = G2*K3;
 S2 = inv(eye(size(L2, 1)) + L2);
 T2 = eye(size(S2, 1)) - S2;
 
-figure
-bodemag(K3*S2*Gd); hold on;
-bodemag([1/Wu211; 1/Wu222])
 
-figure
+%% More plots!!
+% figure
+% bodemag(K3*S2*Gd); hold on;
+% bodemag([1/Wu211; 1/Wu222])
+% title('Input weight');
+% [KS_mag, ~, w_out] = bode(K3*S2*Gd);
+% KS_mag = squeeze(KS_mag);
+% [Wu_mag, ~] = bode(1/Wu2, w_out);
+% Wu_mag = squeeze(Wu_mag);
+
+% tile = tiledlayout(2, 1, 'padding', 'compact', 'tilespacing', 'compact');
+% nexttile; hold on;
+% semilogx(w_out, 20*log10(KS_mag(1,:)));
+% semilogx(w_out, squeeze(20*log10(Wu_mag(1,1,:))));
+% xlim([min(w_out) max(w_out)]);
+% title('\textbf{Pitch angle}', 'interpreter', 'latex')
+% ylabel('$|G(s)|$ [dB]', 'interpreter', 'latex')
+% 
+% nexttile; hold on;
+% semilogx(w_out, 20*log10(KS_mag(2,:)));
+% semilogx(w_out, squeeze(20*log10(Wu_mag(2,2,:))));
+% xlim([min(w_out) max(w_out)]);
+% title('\textbf{Generator torque}', 'interpreter', 'latex')
+% ylabel('$|G(s)|$ [dB]', 'interpreter', 'latex')
+
+% figure
 % bodemag(S2*Gd); hold on;
-bodemag(S2*Gd); hold on;
-bodemag(1/Wp2)
-% bodemag(1/Wp11)
+% bodemag(1/Wp2)
+% title('Error weight');
+% [S_mag, ~, w_out] = bode(S2*Gd);
+% [Wp_mag, ~] = bode(1/Wp2, w_out);
+% semilogx(w_out, squeeze(20*log10(S_mag)), 'displayname', '$S_{11}$'); hold on;
+% semilogx(w_out, squeeze(20*log10(Wp_mag)), 'displayname', '$W_{p}$');
+% title('\textbf{Sensitivity}', 'interpreter', 'latex')
+% ylabel('$|G(s)|$ [dB]', 'interpreter', 'latex')
+
+ 
+TF_V = Wp2\CL_MIMO(1,1);
+TF_U = Wu2\CL_MIMO(2:3,1);
+
+time = linspace(0,600,length(V_meas));
+
+% figure;
+% y = lsim(TF_V, V_meas,time);
+% plot(time, y, 'displayname', 'Tracking error'); 
+% ylim([-0.5 0.5])
+% hold on;
+% yyaxis right
+% plot(time, V_meas, 'displayname', 'Wind speed');
+% title('Tracking error');
+% 
+% figure;
+% tile = tiledlayout(2, 1, 'padding', 'compact', 'tilespacing', 'compact');
+% nexttile
+% y = lsim(TF_U, V_meas,time);
+% plot(time, y(:,1)); hold on;
+% ylabel('Pitch angle [$^\circ$]', 'interpreter', 'latex')
+% yyaxis right
+% plot(time, V_meas);
+% title('Pitch angle');
+% ylabel('Winds speed [m/s]', 'interpreter', 'latex')
+% 
+% nexttile
+% plot(time, y(:,2)); hold on;
+% title('Generator torque');
+% ylabel('Generator torque [Nm]', 'interpreter', 'latex')
+% yyaxis right
+% plot(time, V_meas);
+% title('Pitch angle');
+% ylabel('Winds speed [m/s]', 'interpreter', 'latex')
+
+% Nyquist plot
+[re, im] = gen_nyquist(minreal(K3*G2));
+figure
+tile = tiledlayout(1, 2, 'Padding', 'compact', 'Tilespacing', 'compact');
+nexttile
+plot(re, im); hold on;
+plot(re, -im); hold on;
+title('Global');
+xlabel('Re'); ylabel('Im');
+nexttile
+plot(re, im); hold on;
+plot(re, -im); hold on;
+title('Focus on origin');
+xlabel('Re'); ylabel('Im');
+title(tile, 'Generalized Nyquist')
+
+
