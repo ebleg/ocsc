@@ -106,49 +106,50 @@ S = minreal(inv(eye(2) + L), [], false);
 T = minreal(L*S, [], false);
 
 % Step response
-% figure
-% tile = tiledlayout(1, 2, 'Padding', 'compact', 'Tilespacing', 'compact');
-% nexttile
-% [y1, t] = step(T(1,1));
-% plot(t, y1);
-% title('Step response');
-% xlim([min(t) max(t)]);
-% nexttile
-% KS = tf(minreal(K2*S, [], false));
-% y2 = step(KS(1,1), t);
-% plot(t, y2);
-% xlim([min(t) max(t)]);
-% title('Controller effort');
-% title(tile, '\textbf{Time simulation: step response}', 'interpreter', 'latex')
+figure
+tile = tiledlayout(1, 2, 'Padding', 'compact', 'Tilespacing', 'compact');
+nexttile
+[y1, t] = step(T(1,1));
+plot(t, y1);
+title('Step response');
+xlim([min(t) max(t)]);
+nexttile
+KS = tf(minreal(K2*S, [], false));
+y2 = step(KS(1,1), t);
+plot(t, y2);
+xlim([min(t) max(t)]);
+title('Controller effort');
+title(tile, '\textbf{Time simulation: step response}', 'interpreter', 'latex')
 
 % Disturbance rejection
-% figure
-% tile = tiledlayout(1, 2, 'Padding', 'compact', 'Tilespacing', 'compact');
-% nexttile
-% GdS = tf(minreal(S*G_MIMO(:, 3), [], false));
-% [y3, t] = step(GdS(1,1));
-% plot(t, y3);
-% title('Disturbance rejection');
-% xlim([min(t) max(t)]);
-% nexttile
-% KGdS = tf(minreal(K2*S*G_MIMO(:, 3), [], false));
-% y4 = step(KS(1,1), t);
-% plot(t, y4);
-% xlim([min(t) max(t)]);
-% title('Controller effort');
-% title(tile, '\textbf{Time simulation: disturbance rejection}', 'interpreter', 'latex')
+figure
+tile = tiledlayout(1, 2, 'Padding', 'compact', 'Tilespacing', 'compact');
+nexttile
+GdS = tf(minreal(S*G_MIMO(:, 3), [], false));
+[y3, t] = step(GdS(1,1));
+plot(t, y3);
+title('Disturbance rejection');
+xlim([min(t) max(t)]);
+nexttile
+KGdS = tf(minreal(K2*S*G_MIMO(:, 3), [], false));
+y4 = step(KS(1,1), t);
+plot(t, y4);
+xlim([min(t) max(t)]);
+title('Controller effort');
+title(tile, '\textbf{Time simulation: disturbance rejection}', 'interpreter', 'latex')
 
-% figure
-% [S_mag, ~, w_out] = bode(S(1,1));
-% [Wp_mag, ~] = bode(1/Wp11, w_out);
-% semilogx(w_out, squeeze(20*log10(S_mag)), 'displayname', '$S_{11}$'); hold on;
-% semilogx(w_out, squeeze(20*log10(Wp_mag)), 'displayname', '$W_{p}$');
-% xlim([min(w_out) max(w_out)]);
-% title('\textbf{Sensitivity}', 'interpreter', 'latex');
-% xlabel('\textbf{Frequency (rad/s)}', 'interpreter', 'latex');
-% ylabel('\textbf{Magnitude (dB)}', 'interpreter', 'latex');
-% grid
-% legend;
+figure
+[S_mag, ~, w_out] = bode(S(1,1));
+[Wp_mag, ~] = bode(1/Wp11, w_out);
+semilogx(w_out, squeeze(20*log10(S_mag)), 'displayname', '$S_{11}$'); hold on;
+semilogx(w_out, squeeze(20*log10(Wp_mag)), 'displayname', '$W_{p}$');
+xlim([min(w_out) max(w_out)]);
+title('\textbf{Sensitivity}', 'interpreter', 'latex');
+xlabel('\textbf{Frequency (rad/s)}', 'interpreter', 'latex');
+ylabel('\textbf{Magnitude (dB)}', 'interpreter', 'latex');
+grid
+legend;
+
 
 %% 
 % Nyquist plot
@@ -221,7 +222,9 @@ omega_rng = 1/sampling_mean*(0:(n/2))/n;
 freq_meas = abs(freq_meas/n);
 
 figure
-plot(omega_rng, freq_meas(1:n/2+1)) 
+plot(omega_rng, freq_meas(1:n/2+1)); 
+
+close all
 
 omg1 = 2*pi/1000;
 omg2 = 0.12*2*pi;
@@ -235,20 +238,33 @@ Wu222 = (1 + s/(100*omg1))/(1 + s/(omg1));
 Wp2 = Wp11;
 Wu2 = [Wu211 0; 0 Wu222];
 
+% Bartje 
+Wp_bart = (1000*s + 4.524)/(5*s + 0.0004524); 
+wu_bart_11 = (s + 10^-5)/(0.0001*s + 0.00001);
+wu_bart_22 = (0.0001*s + 1)/(s + 10^-8);
+Wu_bart = [wu_bart_11 0; 0 wu_bart_22];             % Control weight
+
+bodemag(Wu2); hold on
+bodemag(Wu_bart)
+
+figure 
+bodemag(Wp_bart)
+hold on
+bodemag(Wp2)
 %% 
 % *Connect the systems*
-% systemnames = 'G2 Gd Wp2 Wu2';
-% inputvar = '[V; beta; tau_e]';
-% 
-% input_to_G2 = '[beta; tau_e]';
-% input_to_Gd = '[V]';
-% 
-% input_to_Wp2 = '[-G2 - Gd]';
-% input_to_Wu2 = '[beta; tau_e]';
-% 
-% outputvar = '[Wp2; Wu2; -G2 - Gd]';
-% sysoutname = 'P2'; cleanupsysic = 'yes';
-% sysic;
+systemnames = 'G2 Gd Wp2 Wu2';
+inputvar = '[V; beta; tau_e]';
+
+input_to_G2 = '[beta; tau_e]';
+input_to_Gd = '[V]';
+
+input_to_Wp2 = '[G2 + Gd]';
+input_to_Wu2 = '[beta; tau_e]';
+
+outputvar = '[Wp2; Wu2; G2 +Gd]';
+sysoutname = 'P2'; cleanupsysic = 'yes';
+sysic;
 
 P2 = [Wp2*Gd -Wp2*G2; zeros(2,1) -Wu2; Gd -G2];
 
@@ -256,7 +272,7 @@ P2 = balreal(minreal(P2, [], false));
 %% 
 % *Compute the* $$H_\infty$$*-controller* 
 
-[K3, ~, gam2, ~] = hinfsyn(P2, 1, 2);
+[K3, CL_MIMO, gam2, ~] = hinfsyn(P2, 1, 2);
 disp(gam2)
 K3 = balreal(minreal(K3, 1e-6, false));
 
@@ -273,3 +289,8 @@ figure
 bodemag(S2*Gd); hold on;
 bodemag(1/Wp2)
 % bodemag(1/Wp11)
+
+%% 2.5
+time = linspace(0,600,length(V_meas));
+figure(7);	
+lsim(Wu2\CL_MIMO(2:3),V_meas,time);  
