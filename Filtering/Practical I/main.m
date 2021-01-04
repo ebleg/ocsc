@@ -126,8 +126,8 @@ plotresults(kf_pos, dimdiag(kf_P, 3)', mic_locations'); fig3 = gcf;
 F = eye(3);
 delta_tau = mean(diff(TOA_true));
 var_tau = var(diff(TOA_true));
-Q4 = blkdiag(eye(2)*4e-8, var_tau*1e-4);
-R4 = 0.17*diag(mic_variance);
+Q4 = blkdiag(eye(2)*5e-7, var_tau*1e-5);
+R4 = 0.5*diag(mic_variance);
 
 % State 'dynamics'
 f_ext = @(x) [x(1), x(2), x(3) + delta_tau]';
