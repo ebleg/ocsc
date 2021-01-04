@@ -1,5 +1,5 @@
-function [Abar, Bbar, C, D, K, x0] = pem(A0, B0, C0, D0, K0, x00, y, ...
-                                                               u, maxiter)
+function [Abar, Bbar, C, D, K, x0] = pem(Abar0, Bbar0, C0, D0, K0, x00, u, ...
+                                                               y, maxiter)
     %% Instructions:
 
     % Function INPUT 
@@ -23,14 +23,15 @@ function [Abar, Bbar, C, D, K, x0] = pem(A0, B0, C0, D0, K0, x00, y, ...
     
     %% Prepare Gauss-Newton
     % Define matrix sizes
-    Asize = size(A0); Bsize = size(B0); Csize = size(C0); Dsize = size(D0);
+    Asize = size(Abar0); Bsize = size(Bbar0);
+    Csize = size(C0); Dsize = size(D0);
     xsize = size(x00); Ksize = size(K0);
     n = Asize(1);
     m = Bsize(2);
     l = Csize(1);
     
     % Initial theta
-    theta = matrices2theta(A0, B0, C0, D0, K0, x00);
+    theta = matrices2theta(Abar0, Bbar0, C0, D0, K0, x00);
     p = length(theta);
     N = length(y);
     
@@ -48,13 +49,13 @@ function [Abar, Bbar, C, D, K, x0] = pem(A0, B0, C0, D0, K0, x00, y, ...
     
     for i = 1:p
         % Dinite-difference vector
-        h_vec = zeros(p, 1); h_vec(3) = h;
-        [A_dist, B_dist, C_dist, D_dist, K_dist, x0_dist] = ...
+        h_vec = zeros(p, 1); h_vec(i) = h;
+        [Abar_dist, Bbar_dist, C_dist, D_dist, K_dist, x0_dist] = ...
                 theta2matrices(theta + h_vec, Asize, Bsize, Csize, ...
                                                      Dsize, Ksize, xsize);
         % Finite difference computation
-        dAdth(:,:,i) = (A_dist - A0)/h;                                         
-        dBdth(:,:,i) = (B_dist - B0)/h;                                         
+        dAdth(:,:,i) = (Abar_dist - Abar0)/h;                                         
+        dBdth(:,:,i) = (Bbar_dist - Bbar0)/h;                                         
         dCdth(:,:,i) = (C_dist - C0)/h;                                         
         dDdth(:,:,i) = (D_dist - D0)/h;                                         
         dKdth(:,:,i) = (K_dist - K0)/h;                                         
@@ -65,32 +66,32 @@ function [Abar, Bbar, C, D, K, x0] = pem(A0, B0, C0, D0, K0, x00, y, ...
     % Set convergence checks to false
     converged = false;
     maxiter_reached = false;
-    step_size = 1;
-    lambda = 0.5;
+    step_size = 0.5;
+    lambda = 1;
     iter = 1;
     
     while ~converged && ~maxiter_reached
         % Find the matrices based on current theta
-        [A, B, C, D, K, x0] = theta2matrices(theta, Asize, Bsize, ...
+        [Abar, Bbar, C, D, K, x0] = theta2matrices(theta, Asize, Bsize, ...
                                               Csize, Dsize, Ksize, xsize);                                          
         
         % Compute E
-        [y_sim, x_sim] = simsystem(A, [B K], C, [D zeros(l, l)], x0, [u y]);
+        [y_sim, x_sim] = simsystem(Abar, [Bbar K], C, [D zeros(l, l)], x0, [u y]);
         E = y - y_sim;
         
         % Compute phi
-        phi = zeros(l*N, p);
+        psi = zeros(l*N, p);
         for i = 1:p
             % Simulate 'partial derivative' system
-            dydth = simsystem(A, [dAdth(:,:,i) dBdth(:,:,i) dKdth(:,:,i)], ...
+            dydth = simsystem(Abar, [dAdth(:,:,i) dBdth(:,:,i) dKdth(:,:,i)], ...
                 C, [dCdth(:,:,i), dDdth(:,:,i), zeros(l, l)], ...
-                dx0dth(:,:,i), [x_sim, u, y_sim]);            
-            phi(:, i) = -dydth;
+                dx0dth(:,:,i), [x_sim, u, y_sim]);
+            psi(:, i) = -dydth;
         end
         
         % Perform time step
-        J = 2/N*phi'*E;
-        H = 2/N*(phi'*phi);
+        J = 2/N*psi'*E;
+        H = 2/N*(psi'*psi);
         
         theta_new = theta - step_size*(H + eye(size(H))*lambda)\J;
         
