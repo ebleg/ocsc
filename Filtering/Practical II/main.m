@@ -7,13 +7,15 @@ student_number = min(4446100, 4362152);
 
 exciteSystem2 = @(u, fs) exciteSystem(student_number, u, fs);
 
-figure
 
 %% Part 1: Data Preprocessing
-h = 0.03;
-tin = 0:h:3;
-u = zeros(size(tin));
-u(tin > 0.5) = 1000;
+h = 1/11;
+t_max = 100;
+tin = 0:h:t_max;
+% u = zeros(size(tin));
+% u(tin > 1) = 1000;
+
+u = square(tin/8).'*500;
 
 y = exciteSystem2(u, h);
 
@@ -21,30 +23,38 @@ y = exciteSystem2(u, h);
 % Y = fft(y_filt)
 
 % Spike removal
-y_filt = y;
-spike_filt = abs(y_filt - mean(y_filt)) > 3*std(y_filt);
-y_filt(spike_filt) = nan;
-spike_filt = spike_filt & abs(y_filt - nanmean(y_filt)) > 3*nanstd(y_filt);
-y_filt(spike_filt) = nan;
-spike_filt = abs(y_filt - nanmean(y_filt)) > 3*nanstd(y_filt);
-y_filt(spike_filt) = nan;
+y_filt = hampel(y, 10);
+
 % Detrending
 y_filt = y_filt - nanmean(y_filt);
 
-disp(nanmean(y_filt(tin > 0.5)));
-disp(nanmean(y_filt(tin < 0.5)));
+y_filt = movmean(y_filt, 10);
+figure(1)
+plot(tin, y_filt, '.-'); hold on;
+% plot(tin(1:5:end), y_filt(1:5:end), 'LineWidth', 2);
 
+figure(2)
+L = numel(y_filt);
+P2 = abs(fft(y_filt))/L; P1 = P2(1:L/2+1);
+plot(1/h*(0:(L/2))/L, P1)
 
+k = 60;
+rank(hankel(u(1:k), u(k:end)))
 
-plot(tin, y_filt); hold on;
-plot(tin, y_filt)
-% yyaxis right; set(gca, 'YColor', 'black'); yyaxis
-% plot(tin, u);
+n = 12;
 
-function moving_median(x, w)
-    % x: data vector
-    % w: window size
-    for i = 
+%% System identification
+K = zeros(n, 1);
+[A, B, C, D, x0, sv] = subspaceID(u, y_filt, 50, n, 'po-moesp');
+[Abar, Bbar, C, D, K, x0] = pem(A - K*C, ...
+                                B - K*D, ...
+                                C, D, K, x0, y, u, 500);
+figure(3)
+semilogy(sv);
 
-end
+figure(1)
+y_ss simsystem(A, B, C, D, x0, u)); hold on;
+y_pem = simsystem(Abar, [Bbar K], C, [D zeros(1, 1)], x0, [u y]);
+plot(tin, y_ss);
+plot(tin, y_pem);
 
