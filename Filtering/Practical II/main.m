@@ -16,8 +16,8 @@ tin = 0:h:t_max;
 
 u = square(tin/2).'*100;
 
-tin_val = 0:h:10;
-u_val = floor(tin_val/2);
+tin_val = 0:h:18;
+u_val = floor(tin_val/6)*1000;
 
 % y_val = exciteSystem2(u_val, h);
 % save('system_validation', 'y_val');
@@ -28,8 +28,8 @@ u_val = floor(tin_val/2);
 %% Part 1: Data Preprocessing
 load 'system_output_inv';
 
-% Spike removal
-y_filt = hampel(y, 4);
+%% Spike removal
+y_filt = hampel(y, 6, 35);
 figure(1); hold on;
 stairs(tin, y, 'DisplayName', 'Original');
 stairs(tin, y_filt, 'DisplayName', 'Spikes removed');
@@ -37,7 +37,7 @@ legend('Location', 'best'); grid;
 xlabel('Time (s)'); ylabel('System output');
 title('Spike removal using Hampel');
 
-% Detrending
+%% Detrending
 y_filt = y_filt - nanmean(y_filt);
 u_filt = u - nanmean(u);
 
@@ -54,7 +54,7 @@ stairs(tin, y_filt); ylabel('System output');
 hold on;
 
 delay = 2;
-u_filt = [zeros(delay, 1); u_filt(1:(end-delay))];
+% u_filt = [zeros(delay, 1); u_filt(1:(end-delay))];
 
 % Determine the sampling frequency
 figure(3)
@@ -70,7 +70,7 @@ k = 60;
 rank(hankel(u(1:k), u(k:end)))
 
 % System order
-n = 9;
+n = 7;
 
 % figure(4)
 % open '../../../singular_values_500s.fig'
@@ -81,7 +81,7 @@ n = 9;
 K = zeros(n, 1);
 [A, B, C, D, x0, sv] = subspaceID(u_filt, y_filt, 50, n, 'po-moesp');
 [pem.Abar, pem.Bbar, pem.C, pem.D, pem.K, pem.x0] = ...
-                   pem(A - K*C, B - K*D, C, D, K, x0, u_filt, y_filt, 300);
+                   pem(A - K*C, B - K*D, C, D, K, x0, u_filt, y_filt, 500);
 
 figure(4)
 semilogy(sv);
@@ -106,7 +106,39 @@ fprintf('VAF Prediction-error method %.7g%%\n', vaf(y_filt, y_pem));
 %% Validation
 load 'system_validation'
 figure(6); hold on;
-stairs(tin_val, y_ss);
-stairs(tin_val, y_pem);
-stairs(tin_val, simsystem(pem.A, pem.B, pem.C, pem.D, pem.x0, u_val));
+
+y_val_filt = hampel(y_val, 6, 35);
+% u_val_filt = [zeros(delay, 1); u_val(1:(end-delay))'];
+u_val_filt = u_val;
+stairs(tin_val, y_val_filt);
+y_val_pem = simsystem(pem.A, pem.B, pem.C, pem.D, pem.x0, u_val_filt);
+stairs(tin_val, y_val_pem);
+yyaxis right;
+stairs(tin_val, u_val_filt);
+
+fprintf('VAF validation set %.7g%%\n', vaf(y_val_filt, y_val_pem));
+
+figure;
+tile = tiledlayout(2, 1, 'padding', 'compact', 'tilespacing', 'compact');
+title(tile, 'Analysis of the residuals');
+
+nexttile
+[auto_corr, lags_auto] = xcorr(y_val_filt - y_val_pem);
+stem(lags_auto, auto_corr, '.');
+xlim([min(lags_auto), max(lags_auto)]); grid;
+title('Auto-correlation of the residuals');
+
+nexttile
+[cross_corr, lags_cross] = xcorr(y_val_filt - y_val_pem, u_val_filt);
+stem(lags_cross, cross_corr, '.');
+xlim([min(lags_cross), max(lags_cross)]); grid;
+title('Cross-correlation of the residuals');
+
+xlabel(tile, 'Delay')
+set(gcf, 'Position', get(gcf, 'Position').*[1 0.4 1 1.5])
+
+
+
+
+
 

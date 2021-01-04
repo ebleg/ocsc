@@ -96,7 +96,7 @@ function [Abar, Bbar, C, D, K, x0] = pem(Abar0, Bbar0, C0, D0, K0, x00, u, ...
         theta_new = theta - step_size*(H + eye(size(H))*lambda)\J;
         
         % Check convergence
-        if norm(theta_new - theta) < 1e-8
+        if norm(theta_new - theta) < 1e-6
             converged = true;
         elseif iter == maxiter
             maxiter_reached = true;
