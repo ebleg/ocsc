@@ -62,10 +62,10 @@ rank(hankel(u(1:k), u(k:end)))
 % System order
 n = 6;
 
-figure(4)
-open '../../../singular_values_500s.fig'
-title('Singular values for large number of samples'); grid;
-line([n n], get(gca, 'YLim'), 'Color', 'black');
+% figure(4)
+% open '../../../singular_values_500s.fig'
+% title('Singular values for large number of samples'); grid;
+% line([n n], get(gca, 'YLim'), 'Color', 'black');
 
 %% System identification
 K = zeros(n, 1);
@@ -73,11 +73,11 @@ K = zeros(n, 1);
 % [pem.Abar, pem.Bbar, pem.C, pem.D, pem.K, pem.x0] = ...
 %                    pem(A - K*C, B - K*D, C, D, K, x0, u_filt, y_filt, 300);
 
-figure(5)
+figure(4)
 semilogy(sv);
 title('Singular values'); grid;
 
-figure(6)
+figure(5)
 y_ss = simsystem(A, B, C, D, x0, u_filt); hold on;
 stairs(tin, y_filt);
 
