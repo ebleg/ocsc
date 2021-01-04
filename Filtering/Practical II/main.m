@@ -14,7 +14,14 @@ tin = 0:h:t_max;
 % u = zeros(size(tin))';
 % u(tin > 2) = 1000;
 
-u = square(tin/2).'*1e3;
+u = square(tin/2).'*100;
+
+tin_val = 0:h:10;
+u_val = floor(tin_val/2);
+
+% y_val = exciteSystem2(u_val, h);
+% save('system_validation', 'y_val');
+
 % y = exciteSystem2(u, h);
 % save('system_output_inv', 'y');
 
@@ -46,6 +53,9 @@ yyaxis left; set(gca, 'YColor', 'black')
 stairs(tin, y_filt); ylabel('System output');
 hold on;
 
+delay = 2;
+u_filt = [zeros(delay, 1); u_filt(1:(end-delay))];
+
 % Determine the sampling frequency
 figure(3)
 L = numel(y_filt);
@@ -60,7 +70,7 @@ k = 60;
 rank(hankel(u(1:k), u(k:end)))
 
 % System order
-n = 6;
+n = 9;
 
 % figure(4)
 % open '../../../singular_values_500s.fig'
@@ -70,8 +80,8 @@ n = 6;
 %% System identification
 K = zeros(n, 1);
 [A, B, C, D, x0, sv] = subspaceID(u_filt, y_filt, 50, n, 'po-moesp');
-% [pem.Abar, pem.Bbar, pem.C, pem.D, pem.K, pem.x0] = ...
-%                    pem(A - K*C, B - K*D, C, D, K, x0, u_filt, y_filt, 300);
+[pem.Abar, pem.Bbar, pem.C, pem.D, pem.K, pem.x0] = ...
+                   pem(A - K*C, B - K*D, C, D, K, x0, u_filt, y_filt, 300);
 
 figure(4)
 semilogy(sv);
@@ -81,14 +91,22 @@ figure(5)
 y_ss = simsystem(A, B, C, D, x0, u_filt); hold on;
 stairs(tin, y_filt);
 
-% y_pem = simsystem(pem.Abar, [pem.Bbar pem.K], pem.C, ...
-%                             [pem.D zeros(1, 1)], pem.x0, [u_filt y_filt]);
+y_pem = simsystem(pem.Abar, [pem.Bbar pem.K], pem.C, ...
+                            [pem.D zeros(1, 1)], pem.x0, [u_filt y_filt]);
 
 stairs(tin, y_ss);
-% stairs(tin, y_pem);
+stairs(tin, y_pem);
 
-disp(vaf(y_filt, y_ss));
+pem.A = pem.Abar + pem.K*pem.C;
+pem.B = pem.Bbar + pem.K*pem.D;
+
+fprintf('VAF Subspace identification %.7g%%\n', vaf(y_filt, y_ss));
+fprintf('VAF Prediction-error method %.7g%%\n', vaf(y_filt, y_pem));
 
 %% Validation
-
+load 'system_validation'
+figure(6); hold on;
+stairs(tin_val, y_ss);
+stairs(tin_val, y_pem);
+stairs(tin_val, simsystem(pem.A, pem.B, pem.C, pem.D, pem.x0, u_val));
 

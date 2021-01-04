@@ -66,8 +66,8 @@ function [Abar, Bbar, C, D, K, x0] = pem(Abar0, Bbar0, C0, D0, K0, x00, u, ...
     % Set convergence checks to false
     converged = false;
     maxiter_reached = false;
-    step_size = 0.5;
-    lambda = 1;
+    step_size = 100;
+    lambda = 1e4;
     iter = 1;
     
     while ~converged && ~maxiter_reached
