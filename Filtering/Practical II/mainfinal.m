@@ -129,9 +129,3 @@ title('Cross-correlation of the residuals');
 
 xlabel(tile, 'Delay')
 set(gcf, 'Position', get(gcf, 'Position').*[1 0.4 1 1.5])
-
-
-
-
-
-
