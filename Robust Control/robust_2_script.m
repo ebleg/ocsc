@@ -15,7 +15,7 @@ s = tf('s');
 % Compute the RGA for $$\omega=0$$ and $$\omega = 0.4\times2\times \pi$. What 
 % can you conclude?
 
-RGA = @(G, omega) evalfr(G, omega).*pinv(evalfr(G, omega))';
+RGA = @(G, omega) evalfr(G, complex(0, omega)).*pinv(evalfr(G, complex(0, omega)))';
 
 disp('RGA (omega = 0):');
 disp(RGA(G, 0))
@@ -155,20 +155,20 @@ legend;
 
 %% 
 % Nyquist plot
-% [re, im] = gen_nyquist(L);
-% figure
-% tile = tiledlayout(1, 2, 'Padding', 'compact', 'Tilespacing', 'compact');
-% nexttile
-% plot(re, im); hold on;
-% plot(re, -im); hold on;
-% title('Global');
-% xlabel('Re'); ylabel('Im');
-% nexttile
-% plot(re, im); hold on;
-% plot(re, -im); hold on;
-% title('Focus on origin');
-% xlabel('Re'); ylabel('Im');
-% title(tile, 'Generalized Nyquist')
+[re, im] = gen_nyquist(L);
+figure
+tile = tiledlayout(1, 2, 'Padding', 'compact', 'Tilespacing', 'compact');
+nexttile
+plot(re, im); hold on;
+plot(re, -im); hold on;
+title('Global');
+xlabel('Re'); ylabel('Im');
+nexttile
+plot(re, im); hold on;
+plot(re, -im); hold on;
+title('Focus on origin');
+xlabel('Re'); ylabel('Im');
+title(tile, 'Generalized Nyquist')
 
 
 % Question 9
@@ -371,4 +371,3 @@ plot(re, -im); hold on;
 title('Focus on origin');
 xlabel('Re'); ylabel('Im');
 title(tile, 'Generalized Nyquist')
-

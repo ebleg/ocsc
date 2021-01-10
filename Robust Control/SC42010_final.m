@@ -356,7 +356,7 @@ HinfWp=hinfnorm(minreal(Wp*S9))
 % sensitivity functions both systems
 G2=transfer(2,2);
 figure
-bode(S1)
+% bode(S1)
 hold on
 SYS2_OL=minreal(G1*K8(1,1)+G2*K8(2,1));
 Gcomp=[G1 G2;G3 G4];
@@ -367,32 +367,32 @@ bode(1/Wp11)
 title('Sensitivy function system1 and system 2')
 legend('SISO controller','MIMO controller','Upper bound S2')
 
-%% Computer session 2
-% importing variables 
-Data                = importdata('DataFWT.mat');
-
-A                   = Data.A;
-B                   = Data.B;
-C                   = Data.C; 
-D                   = Data.D; 
-
-s                   = tf('s');
-
-system              = ss(A,B,C,D); 
-G_mimo              = tf(system); 
-
-G1                  = G_mimo(1,1); 
-G2                  = G_mimo(1,2); 
-G3                  = G_mimo(2,1); 
-G4                  = G_mimo(2,2); 
-G                   = [G1 G2; G3 G4];
-
-
-wB                  = 0.4*2*pi;         % desired bandwith 
-At                  = 1E-4;             % desired attenuation inside bandwith
-M                   = 1.8;              % desired bound on hinfnorm(S)
-Wp                  = [(s/M+wB)/(s+wB*At) 0; 0 0.2];
-Wu                  = [0.01 0;0 (5E-3*s^2+7E-4*s+5E-5)/(s^2+14E-4*s+10E-6)];
+% %% Computer session 2
+% % importing variables 
+% Data                = importdata('DataFWT.mat');
+% 
+% A                   = Data.A;
+% B                   = Data.B;
+% C                   = Data.C; 
+% D                   = Data.D; 
+% 
+% s                   = tf('s');
+% 
+% system              = ss(A,B,C,D); 
+% G_mimo              = tf(system); 
+% 
+% G1                  = G_mimo(1,1); 
+% G2                  = G_mimo(1,2); 
+% G3                  = G_mimo(2,1); 
+% G4                  = G_mimo(2,2); 
+% G                   = [G1 G2; G3 G4];
+% 
+% 
+% wB                  = 0.4*2*pi;         % desired bandwith 
+% At                  = 1E-4;             % desired attenuation inside bandwith
+% M                   = 1.8;              % desired bound on hinfnorm(S)
+% Wp                  = [(s/M+wB)/(s+wB*At) 0; 0 0.2];
+% Wu                  = [0.01 0;0 (5E-3*s^2+7E-4*s+5E-5)/(s^2+14E-4*s+10E-6)];
 
 %% Adjusted weights for DK iterations
 wB                  = 0.4;              % desired bandwith 
